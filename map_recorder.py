@@ -55,9 +55,9 @@ class MapRecorder():
         
     def add_loot(self, msg):
         if len(self.data) > 0:
-            info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
+            info = [int(''.join(filter(lambda x: x.isdigit(), y))) for y in msg.split(self.separator)]
             self.data[-1]["loot"] += info
-            print("Adding loot : {0}".format(', '.join(info)))
+            print("Adding loot : {0}".format(', '.join(str(x) for x in info)))
         else:
             print("ERR: adding loot with no active map")
             
