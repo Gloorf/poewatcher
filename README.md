@@ -23,4 +23,4 @@ me:1 # You killed 1 boss on this maps
 
 The keywords and separator(default is ",") can be changed in config.py.
 
-*Generic recorder. This can works with any finite numbers of value you want to record. An example (suited for MF run on dominus/voll for example) is used here ; simply changes the "generic_headers" in config.py
+* Generic recorder. This can works with any finite numbers of value you want to record. An example (suited for MF run on dominus/voll for example) is used here ; simply changes the "generic_headers" in config.py
