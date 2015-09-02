@@ -64,7 +64,8 @@ class MapRecorder():
             
     def add_note(self, msg):
         if len(self.data) > 0:
-            self.data[-1]["note"].append(msg)
+            #Remove the comma to not break the .csv
+            self.data[-1]["note"].append(msg.replace(",",""))
             print("Adding note : {0}".format(msg))
         else:
             print("ERR: adding note with no active map")
