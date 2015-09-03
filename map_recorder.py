@@ -2,8 +2,10 @@
 # -*- coding: utf8 -*-
 from collections import OrderedDict
 from config import default_boss
-import os  
-headers ="level,pack size,IIQ,boss,beyond,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
+import os
+import time
+import inspect
+headers ="timestamp,character,level,pack size,IIQ,boss,beyond,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
 class MapRecorder():
     def __init__(self, actions, separator, output_path):
         self.actions = []
@@ -21,14 +23,18 @@ class MapRecorder():
                 print("Created output csv file for MapRecorder")
                 
         
-    def parse_message(self, msg):
+    def parse_message(self, msg, char_name):
         for abbr,func in self.actions:
             if abbr in msg:
-                func(msg.replace(abbr, ""))
+                #We don't need to pass char_name to other function than add_map [still kinda ugly, will works on this to make it better]
+                if len(inspect.getargspec(func)[0]) == 3:
+                    func(msg.replace(abbr,""), char_name)
+                else:
+                    func(msg.replace(abbr, ""))
     
                 
     def to_csv(self, data):
-        out = str(data["level"]) + "," + str(data["psize"]) + "," + str(data["iiq"]) + "," + str(data["boss"]) + "," + str(data["beyond"]) + "," + str(data["magic"]) + "," + str(data["zana"])
+        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["beyond"], data["magic"], data["zana"])
         for i in range(68,83):
             out += "," + str(data["loot"].count(i))
         out += ","
@@ -36,12 +42,12 @@ class MapRecorder():
         return out          
                 
               
-    def add_map(self, msg):
+    def add_map(self, msg, char_name):
         info = msg.split(self.separator)
         #In case of user input error, assume empty
         while len(info) < 4:
             info.append("")            
-        tmp=OrderedDict({"level":0, "psize":0, "iiq":0, "beyond": ("b" in info[3]),"magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]})
+        tmp=OrderedDict({"character":char_name,"level":0, "psize":0, "iiq":0, "beyond": ("b" in info[3]),"magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]})
         #We remove all non-digit character
         for i in range(0,3):
             info[i] = ''.join(filter(lambda x: x.isdigit(), info[i]))
@@ -74,7 +80,6 @@ class MapRecorder():
     def end_map(self, msg):
         if len(self.data) > 0:
             self.data[-1]["boss"] = ''.join(filter(lambda x: x.isdigit(), msg))
-            #We assume 1 boss killed (an option on this could be nice)
             self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else default_boss
             output = self.to_csv(self.data[-1])
             with open(self.output_path, "a") as file_out:

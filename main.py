@@ -52,8 +52,8 @@ class PoeHandler(FileSystemEventHandler):
     def strip_username(self, line):
         for name in self.usernames:
             if name + ": " in line:
-                return line.replace(name + ": ", "")
-        return ""
+                return (line.replace(name + ": ", ""), name)
+        return ("", "")
     def on_modified(self, event):
         if not event.is_directory and event.src_path.endswith("Client.txt"):
             for line in self.file:
@@ -65,8 +65,9 @@ class PoeHandler(FileSystemEventHandler):
                         self.notifier = False
                     if not poe_active() and self.notifier:
                         notifier.parse_message(message)
-                    if self.strip_username(message):
-                        map_recorder.parse_message(self.strip_username(message))
+                    stripped, name = self.strip_username(message)
+                    if stripped:
+                        map_recorder.parse_message(stripped, name)
                         generic_recorder.parse_message(self.strip_username(message))
                          
 

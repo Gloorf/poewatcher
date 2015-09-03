@@ -10,6 +10,8 @@ log_path = "/opt/pathofexile/drive_c/Program Files/Grinding Gear Games/Path of E
 #Number of boss killed by maps
 default_boss = 1
 #MapRecorder config
+#Values are "" (the character name who wrote in local will be used), "anonymous" if you don't want to log it, or "Glorf"(any fixed username) if you want it to stay the same
+logged_username = ""
 map_output_path = "map_data.csv"
 #(action, shortcut, function_name) : absolutely DON'T change function name, action is here only for clarity
 map_actions = [("start", "ms:", "add_map"), 
