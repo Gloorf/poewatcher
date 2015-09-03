@@ -81,6 +81,7 @@ class PoeHandler(FileSystemEventHandler):
                     if not poe_active() and self.notifier:
                         notifier.parse_message(message)
                     stripped, name = self.strip_username(message)
+                    name = c.logged_username if c.logged_username else name
                     if stripped:
                         map_recorder.parse_message(stripped, name)
                         generic_recorder.parse_message(self.strip_username(message))
