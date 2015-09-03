@@ -18,6 +18,7 @@
 import re
 import time
 import os
+import requests
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from map_recorder import * 
@@ -53,12 +54,16 @@ def poe_active():
     else:
         return False
 class PoeHandler(FileSystemEventHandler):
-    def __init__(self, usernames, log_path):
+    def __init__(self, usernames, actions, log_path):
         self.usernames = usernames
-        self.notifier = True
+        self.notifier = c.notifier_on
+        self.actions = []
+        for pr in actions:
+            self.actions.append((pr[1], getattr(self, pr[2])))
         self.file = open(log_path + "Client.txt", "r")
         first = self.file.readline() #Read the first line
         for last in self.file: pass #Loop through the whole file (place us at the end of file)
+
     def find_message(self, line):
         regex_msg = re.compile("\[INFO Client \d+\] (.*)")
         if regex_msg.search(line):
@@ -74,10 +79,9 @@ class PoeHandler(FileSystemEventHandler):
             for line in self.file:
                 message = self.find_message(line)
                 if message:
-                    if "notifier on:" in message:
-                        self.notifier = True
-                    if "notifier off:" in message:
-                        self.notifier = False
+                    for abbr, func in self.actions:
+                        if abbr in message:
+                            func()
                     if not poe_active() and self.notifier:
                         notifier.parse_message(message)
                     stripped, name = self.strip_username(message)
@@ -85,15 +89,25 @@ class PoeHandler(FileSystemEventHandler):
                     if stripped:
                         map_recorder.parse_message(stripped, name)
                         generic_recorder.parse_message(self.strip_username(message))
-                         
-
+    def notifier_off(self):
+        print("Turning off notifier")
+        self.notifier = False
+    def notifier_on(self):
+        print("Turning on notifier")
+        self.notifier = True
+    def poetrade_off(self):
+        print("Turning offline poe.trade")
+        requests.post(c.poetrade_url + "/offline")
+    def poetrade_on(self):
+        print("Turning online poe.trade")
+        requests.post(c.poetrade_url)
 
 map_recorder = MapRecorder(c.map_actions, c.separator, c.map_output_path)
 notifier = Notifier(c.notifier_channels, c.notifier_title, c.notifier_icon_path, windows)
 generic_recorder = GenericRecorder(c.generic_actions, c.separator, c.generic_output_path, c.generic_headers)
-event_handler = PoeHandler(c.usernames, c.log_path)
+poe_handler = PoeHandler(c.usernames, c.handler_actions, c.log_path)
 observer = Observer()
-observer.schedule(event_handler, c.log_path, recursive=False)
+observer.schedule(poe_handler, c.log_path, recursive=False)
 observer.start()
 try:
     while True:

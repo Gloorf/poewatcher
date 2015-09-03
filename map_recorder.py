@@ -46,8 +46,8 @@ class MapRecorder():
                     func(msg.replace(abbr,""), char_name)
                 else:
                     func(msg.replace(abbr, ""))
-    
-                
+
+
     def to_csv(self, data):
         out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["ambush"], data["beyond"], data["domination"],data["magic"], data["zana"])
         for i in range(68,83):

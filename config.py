@@ -24,6 +24,14 @@ separator = ","
 #Your characters names
 usernames = ["Glorf", "Faaee"]
 log_path = "/opt/pathofexile/drive_c/Program Files/Grinding Gear Games/Path of Exile/logs/"
+handler_actions = [ ("pause notifier", "notifier off", "notifier_off"),
+                   ("unpause notifier", "notifier on", "notifier_on"),
+                   ("poe.trade online", "poetrade on", "poetrade_on"),
+                   ("poe.trade offline", "poetrade off", "poetrade_off")]
+#Turns you offline on poe.trade during map (after map_start, turns you back online after map end)
+offline_while_maps = False
+
+poetrade_url = ""
 #Number of boss killed by maps
 default_boss = 1
 #MapRecorder config
@@ -44,3 +52,4 @@ generic_output_path = "generic_data.csv"
 notifier_icon_path = "/home/glorf/code/watch_poe/logo.png"
 notifier_channels = ["@","%","&","#"]
 notifier_title = "PoE message"
+notifier_on = True
