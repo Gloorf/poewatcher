@@ -16,7 +16,7 @@ ml:78,75 #You can input multiple maps
 mn:loot mjolner #You can add as much notes as you want
 me:1 # You killed 1 boss on this maps
 ```
-* map start : (keyword)map_level,map_packsize,map_iiq[,bmz]. The last is optional, and you can use 1, 2 or 3 of them. "b" is for Beyond mod, "m" is for magic monsters, "z" for zana.
+* map start : (keyword)map_level,map_packsize,map_iiq[,abdmz]. The last is optional, and you can use 1, 2 or 3 of them. "a" is for Ambush, "d" for Domination, "b" is for Beyond mod, "m" is for magic monsters, "z" for zana.
 * map loot : (keyword)map_level[,map_n_level...]. Pretty straightforward
 * map note : (keyword)note. The note can be any size, comma will be removed though (to avoid breaking the .csv) ; multiples notes will be separated by a "|"
 * map end : (keyword)[boss_killed]. You can omit boss_killed, in this case the default value in config.py will be used

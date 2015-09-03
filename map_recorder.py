@@ -5,7 +5,7 @@ from config import default_boss
 import os
 import time
 import inspect
-headers ="timestamp,character,level,pack size,IIQ,boss,beyond,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
+headers ="timestamp,character,level,pack size,IIQ,boss,ambush,beyond,domination,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
 class MapRecorder():
     def __init__(self, actions, separator, output_path):
         self.actions = []
@@ -34,7 +34,7 @@ class MapRecorder():
     
                 
     def to_csv(self, data):
-        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["beyond"], data["magic"], data["zana"])
+        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["ambush"], data["beyond"], data["domination"],data["magic"], data["zana"])
         for i in range(68,83):
             out += "," + str(data["loot"].count(i))
         out += ","
@@ -47,7 +47,7 @@ class MapRecorder():
         #In case of user input error, assume empty
         while len(info) < 4:
             info.append("")            
-        tmp=OrderedDict({"character":char_name,"level":0, "psize":0, "iiq":0, "beyond": ("b" in info[3]),"magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]})
+        tmp=OrderedDict({"character":char_name,"level":0, "psize":0, "iiq":0, "ambush": ("a" in info[3]), "beyond": ("b" in info[3]),"domination": ("d" in info[3]),  "magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]})
         #We remove all non-digit character
         for i in range(0,3):
             info[i] = ''.join(filter(lambda x: x.isdigit(), info[i]))
@@ -56,7 +56,7 @@ class MapRecorder():
         tmp["psize"] = info[1]
         tmp["iiq"] = info[2]
         self.data.append(tmp)
-        print("Started map, with level = {0}, psize = {1}, iiq = {2}, beyond = {3}, magic = {4}, zana = {5}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["magic"], tmp["zana"]))
+        print("Started map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"]))
         
         
     def add_loot(self, msg):
