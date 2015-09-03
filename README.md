@@ -7,6 +7,7 @@ A python script for Path Of Exile controlled by in game text input (it scans the
   
 # Features
 
+* poe.trade online/offline toggle. Either manual or toggled off during maps (between mapstart/map end). If you have an automatic online toggler (like acquisition / procurement) it won't work since they'll put you back online.
 * Whisper (and others channels if you want) notifier. Uses notify-send. This is primarily done for Linux, but it works on windows using [notify-send](http://vaskovsky.net/notify-send/).
 * Map recorder. Simplifies recording map by avoiding you to alt-tab every time you want to write it down. It scans only local channel, and message by you. An example of a map recording :
 ```
