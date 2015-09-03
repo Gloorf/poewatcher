@@ -21,6 +21,7 @@ import os
 import time
 import inspect
 headers ="timestamp,character,level,pack size,IIQ,boss,ambush,beyond,domination,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
+
 class MapRecorder():
     def __init__(self, actions, separator, output_path):
         self.actions = []
@@ -56,7 +57,10 @@ class MapRecorder():
         out += '|'.join(data["note"])
         return out          
                 
-              
+    def running(self):
+        return len(self.data) > 0
+        
+                      
     def add_map(self, msg, char_name):
         info = msg.split(self.separator)
         #In case of user input error, assume empty
