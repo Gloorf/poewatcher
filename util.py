@@ -66,12 +66,12 @@ def dict_from_csv(line):
     tmp ={"timestamp":data[0], "character":data[1],"level":data[2], "psize":data[3], "iiq":data[4], "boss": data[5], "ambush": data[6], "beyond": data[7],"domination": data[8],  "magic": data[9],"zana" : data[10], "loot":loot }
     return tmp
 
-def contactserver(data):
+def contact_server(data):
     # Create a socket (SOCK_STREAM means a TCP socket)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
      # Connect to server and send data
-    sock.connect(c.get("map_recorder", "server_host"), c.get("map_recorder", "server_port"))
+    sock.connect((c.get("map_recorder", "server_host"), int(c.get("map_recorder", "server_port"))))
     b = json.dumps(data).encode('utf-8')
     sock.sendall(b)
 

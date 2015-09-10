@@ -88,7 +88,14 @@ class MapRecorder():
             print("Adding note : {0}".format(msg))
         else:
             print("ERR: adding note with no active map")
-            
+
+
+    def abort_map(self, msg):
+        if len(self.data) > 0:
+            print("Removing last map")
+            self.data = self.data[:-1]       
+        else:
+            print("ERR: aborting map with no active map")
             
     def end_map(self, msg):
         if len(self.data) > 0:
@@ -99,6 +106,10 @@ class MapRecorder():
                 file_out.write(output)
                 file_out.write("\n")
             print("Map ended, i wrote : {0}".format(output))
+            if c.getboolean("map_recorder", "send_data"):
+                self.data[-1]["timestamp"] = int(time.time())
+                self.data[-1]["username"] = self.data[-1]["character"] if c.getboolean("map_recorder", "send_data") else "anonymous"
+                util.contact_server(self.data[-1])
             self.data = self.data[:-1]
         else:
             print("ERR: ending map with no active map")

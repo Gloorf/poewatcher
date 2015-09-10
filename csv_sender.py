@@ -8,4 +8,4 @@ Use only once, to send a whole CSV file. Ignores first line (assumed to be heade
 with open(c.get("map_recorder", "output_path"), "r") as file:
     file.readline() #Go past first line[headers]
     for line in file:
-        k = util.contactserver(util.dict_from_csv(line))
+        k = util.contact_server(util.dict_from_csv(line))
