@@ -17,6 +17,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 import os
 from datetime import datetime
+from log import logger
 class Notifier():
     def __init__(self, channels, title, icon_path, windows):
         self.channels = channels
@@ -33,4 +34,4 @@ class Notifier():
         else:
             os.system('notify-send ' + cmd)
         #rstrip for prettyness (else we have an unnecessary newline)
-        print("Sent PoE Message Warning (at {0}) : {1}".format(datetime.now().strftime("%H:%M"), msg.rstrip("\n")))
+        logger.info("Sent PoE Message Warning (at {0}) : {1}".format(datetime.now().strftime("%H:%M"), msg.rstrip("\n")))

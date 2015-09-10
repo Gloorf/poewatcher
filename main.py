@@ -22,7 +22,7 @@ from generic_recorder import *
 from poe_handler import *
 from util import *
 from config import config as c
-
+from log import logger
 
 ##Init stuff
 map_recorder = MapRecorder(c.get_actions("map_recorder"), c.get("global","separator"), c.get("map_recorder","output_path"))
@@ -32,6 +32,7 @@ poe_handler = PoeHandler(c.get_list("global","usernames"), c.get_actions("handle
 observer = Observer()
 observer.schedule(poe_handler, c.get("global","log_path"), recursive=False)
 observer.start()
+logger.info("started watch_poe")
 ##Main loop
 try:
     while True:
@@ -60,6 +61,7 @@ try:
             
 except KeyboardInterrupt:
     observer.stop()
+    logger.info("Stopping watch_poe")
 observer.join()
 
 

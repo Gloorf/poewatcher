@@ -20,7 +20,7 @@ import time
 import requests
 from watchdog.events import FileSystemEventHandler
 from config import config as c
-
+from log import logger
 class PoeHandler(FileSystemEventHandler):
     def __init__(self, usernames, actions, log_path):
         self.usernames = usernames
@@ -61,14 +61,20 @@ class PoeHandler(FileSystemEventHandler):
                             
                             
     def notifier_off(self):
-        print("Turning off notifier")
+        logger.info("Turning off notifier")
         self.notifier = False
     def notifier_on(self):
-        print("Turning on notifier")
+        logger.info("Turning on notifier")
         self.notifier = True
     def poetrade_off(self):
-        print("Turning offline poe.trade")
-        requests.post(c.get("handler","poetrade_url") + "/offline")
+        if c.get("handler", "poetrade_url"):
+            logger.info("Turning offline poe.trade")
+            requests.post(c.get("handler","poetrade_url") + "/offline")
+        else:
+            logger.warning("Trying to set poetrade offline but url is empty")
     def poetrade_on(self):
-        print("Turning online poe.trade")
-        requests.post(c.get("handler","poetrade_url"))
+        if c.get("handler", "poetrade_url"):
+            logger.info("Turning online poe.trade")
+            requests.post(c.get("handler","poetrade_url"))
+        else:
+            logger.warning("Trying to set poetrade online but url is empty")

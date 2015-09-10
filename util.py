@@ -77,8 +77,6 @@ def contact_server(data):
 
    # Receive data from the server and shut down
     received = str(sock.recv(1024), "utf-8")
-    print("Sent:     {}".format(data))
-    print("Received: {}".format(received))
     return format(received)    
     
     

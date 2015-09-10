@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 import os
+from log import logger
 class GenericRecorder():
     def __init__(self, actions, separator, output_path, headers):
         
@@ -32,7 +33,7 @@ class GenericRecorder():
             if os.path.getsize(output_path) == 0:
                 file.write(','.join(headers))
                 file.write("\n")
-                print("Created output csv file for GenericRecorder")
+                logger.info("Created output csv file for GenericRecorder")
     def parse_message(self, msg):
         for abbr,func in self.actions:
             if abbr in msg:
@@ -45,4 +46,4 @@ class GenericRecorder():
         with open(self.output_path, "a") as file:
             file.write(csv)
             file.write("\n")
-        print("GenericRecorder wrote : {0}".format(csv))
+        logger.info("GenericRecorder wrote : {0}".format(csv))

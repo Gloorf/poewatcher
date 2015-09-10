@@ -20,6 +20,7 @@ import os
 import time
 import inspect
 import util
+from log import logger
 headers ="timestamp,character,level,pack size,IIQ,boss,ambush,beyond,domination,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
 
 class MapRecorder():
@@ -36,7 +37,7 @@ class MapRecorder():
             if os.path.getsize(output_path) == 0:
                 file.write(headers)
                 file.write("\n")
-                print("Created output csv file for MapRecorder")
+                logger.info("Created output csv file for MapRecorder")
                 
         
     def parse_message(self, msg, char_name):
@@ -69,33 +70,33 @@ class MapRecorder():
         tmp["psize"] = info[1]
         tmp["iiq"] = info[2]
         self.data.append(tmp)
-        print("Started map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"]))
+        logger.info("Started map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"]))
         
         
     def add_loot(self, msg):
         if len(self.data) > 0:
             info = [int(''.join(filter(lambda x: x.isdigit(), y))) for y in msg.split(self.separator)]
             self.data[-1]["loot"] += info
-            print("Adding loot : {0}".format(', '.join(str(x) for x in info)))
+            logger.info("Adding loot : {0}".format(', '.join(str(x) for x in info)))
         else:
-            print("ERR: adding loot with no active map")
+            logger.error("adding loot with no active map")
             
             
     def add_note(self, msg):
         if len(self.data) > 0:
             #Remove the comma to not break the .csv
             self.data[-1]["note"].append(msg.replace(",",""))
-            print("Adding note : {0}".format(msg))
+            logger.info("Adding note : {0}".format(msg))
         else:
-            print("ERR: adding note with no active map")
+            logger.error("ERR: adding note with no active map")
 
 
     def abort_map(self, msg):
         if len(self.data) > 0:
-            print("Removing last map")
+            logger.info("Removing last map")
             self.data = self.data[:-1]       
         else:
-            print("ERR: aborting map with no active map")
+            logger.error("ERR: aborting map with no active map")
             
     def end_map(self, msg):
         if len(self.data) > 0:
@@ -105,11 +106,11 @@ class MapRecorder():
             with open(self.output_path, "a") as file_out:
                 file_out.write(output)
                 file_out.write("\n")
-            print("Map ended, i wrote : {0}".format(output))
+            logger.info("Map ended, i wrote : {0}".format(output))
             if c.getboolean("map_recorder", "send_data"):
                 self.data[-1]["timestamp"] = int(time.time())
                 self.data[-1]["username"] = self.data[-1]["character"] if c.getboolean("map_recorder", "send_data") else "anonymous"
                 util.contact_server(self.data[-1])
             self.data = self.data[:-1]
         else:
-            print("ERR: ending map with no active map")
+            logger.error("ERR: ending map with no active map")
