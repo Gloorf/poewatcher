@@ -15,7 +15,7 @@
 
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
-from config import default_boss
+from config import config as c
 import os
 import time
 import inspect
@@ -93,7 +93,7 @@ class MapRecorder():
     def end_map(self, msg):
         if len(self.data) > 0:
             self.data[-1]["boss"] = ''.join(filter(lambda x: x.isdigit(), msg))
-            self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else default_boss
+            self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else c.get("map_recorder","default_boss")
             output = util.dict_to_csv(self.data[-1])
             with open(self.output_path, "a") as file_out:
                 file_out.write(output)

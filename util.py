@@ -16,7 +16,7 @@
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 import os
-import config as c
+from config import config as c
 import time
 import socket
 import json
@@ -71,7 +71,7 @@ def contactserver(data):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
      # Connect to server and send data
-    sock.connect((c.map_server_host, c.map_server_port))
+    sock.connect(c.get("map_recorder", "server_host"), c.get("map_recorder", "server_port"))
     b = json.dumps(data).encode('utf-8')
     sock.sendall(b)
 

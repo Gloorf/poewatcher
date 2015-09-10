@@ -19,12 +19,12 @@ import re
 import time
 import requests
 from watchdog.events import FileSystemEventHandler
-import config as c
+from config import config as c
 
 class PoeHandler(FileSystemEventHandler):
     def __init__(self, usernames, actions, log_path):
         self.usernames = usernames
-        self.notifier = c.notifier_on
+        self.notifier = c.getboolean("notifier", "on")
         self.actions = []
         self.messages = []
         for pr in actions:
@@ -68,7 +68,7 @@ class PoeHandler(FileSystemEventHandler):
         self.notifier = True
     def poetrade_off(self):
         print("Turning offline poe.trade")
-        requests.post(c.poetrade_url + "/offline")
+        requests.post(c.get("handler","poetrade_url") + "/offline")
     def poetrade_on(self):
         print("Turning online poe.trade")
-        requests.post(c.poetrade_url)
+        requests.post(c.get("handler","poetrade_url"))

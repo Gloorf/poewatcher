@@ -21,18 +21,17 @@ from notifier import *
 from generic_recorder import *
 from poe_handler import *
 from util import *
-import config as c
+from config import config as c
 
 
 ##Init stuff
-map_recorder = MapRecorder(c.map_actions, c.separator, c.map_output_path)
-notifier = Notifier(c.notifier_channels, c.notifier_title, c.notifier_icon_path, windows)
-generic_recorder = GenericRecorder(c.generic_actions, c.separator, c.generic_output_path, c.generic_headers)
-poe_handler = PoeHandler(c.usernames, c.handler_actions, c.log_path)
+map_recorder = MapRecorder(c.get_actions("map_recorder"), c.get("global","separator"), c.get("map_recorder","output_path"))
+notifier = Notifier(c.get_list("notifier","channels"), c.get("notifier","title"), c.get("notifier","icon_path"), windows)
+generic_recorder = GenericRecorder(c.get_actions("generic_recorder"), c.get("global","separator"), c.get("generic_recorder","output_path"), c.get_list("generic_recorder","headers"))
+poe_handler = PoeHandler(c.get_list("global","usernames"), c.get_actions("handler"), c.get("global","log_path"))
 observer = Observer()
-observer.schedule(poe_handler, c.log_path, recursive=False)
+observer.schedule(poe_handler, c.get("global","log_path"), recursive=False)
 observer.start()
-
 ##Main loop
 try:
     while True:
@@ -42,14 +41,14 @@ try:
             if not poe_active() and poe_handler.notifier:
                 notifier.parse_message(message)
             stripped, name = poe_handler.strip_username(message)
-            name = c.logged_username if c.logged_username else name
+            name = c.get("map_recorder","logged_username") if c.get("map_recorder","logged_username") else name
             if stripped:
                 old_state = map_recorder.running()
                 map_recorder.parse_message(stripped, name)
                 generic_recorder.parse_message(poe_handler.strip_username(message))
                 state = map_recorder.running()
                 #Change of stat (either map started/map ended)
-                if c.offline_while_maps and state != old_state:
+                if c.getboolean("handler","offline_while_maps") and state != old_state:
                     if state:
                         poe_handler.poetrade_off()
                     else:
