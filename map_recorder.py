@@ -15,11 +15,11 @@
 
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
-from collections import OrderedDict
 from config import default_boss
 import os
 import time
 import inspect
+import util
 headers ="timestamp,character,level,pack size,IIQ,boss,ambush,beyond,domination,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
 
 class MapRecorder():
@@ -49,13 +49,7 @@ class MapRecorder():
                     func(msg.replace(abbr, ""))
 
 
-    def to_csv(self, data):
-        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["ambush"], data["beyond"], data["domination"],data["magic"], data["zana"])
-        for i in range(68,83):
-            out += "," + str(data["loot"].count(i))
-        out += ","
-        out += '|'.join(data["note"])
-        return out          
+         
                 
     def running(self):
         return len(self.data) > 0
@@ -66,7 +60,7 @@ class MapRecorder():
         #In case of user input error, assume empty
         while len(info) < 4:
             info.append("")            
-        tmp=OrderedDict({"character":char_name,"level":0, "psize":0, "iiq":0, "ambush": ("a" in info[3]), "beyond": ("b" in info[3]),"domination": ("d" in info[3]),  "magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]})
+        tmp={"character":char_name,"level":0, "psize":0, "iiq":0, "ambush": ("a" in info[3]), "beyond": ("b" in info[3]),"domination": ("d" in info[3]),  "magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]}
         #We remove all non-digit character
         for i in range(0,3):
             info[i] = ''.join(filter(lambda x: x.isdigit(), info[i]))
@@ -100,7 +94,7 @@ class MapRecorder():
         if len(self.data) > 0:
             self.data[-1]["boss"] = ''.join(filter(lambda x: x.isdigit(), msg))
             self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else default_boss
-            output = self.to_csv(self.data[-1])
+            output = util.dict_to_csv(self.data[-1])
             with open(self.output_path, "a") as file_out:
                 file_out.write(output)
                 file_out.write("\n")

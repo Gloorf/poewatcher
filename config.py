@@ -43,6 +43,8 @@ map_actions = [("start", "ms:", "add_map"),
             ("loot", "ml:", "add_loot"),
             ("note", "mn:", "add_note"),
             ("end", "me:", "end_map") ]
+map_server_host = "poe.glorf.fr"
+map_server_port = 8095
 #GenericRecorder config
 generic_headers = ["numbers of unique", "numbers of rare", "numbers of 6sockets"]
 generic_actions = [ ("loot", "gl:", "add_loot")]

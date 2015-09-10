@@ -16,6 +16,10 @@
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 import os
+import config as c
+import time
+import socket
+import json
 if os.name == "nt":
     windows = True
     import subprocess
@@ -44,3 +48,37 @@ def poe_active():
         return True
     else:
         return False
+#It is kinda ugly :( should fix that :P        
+def dict_to_csv(data):
+        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["ambush"], data["beyond"], data["domination"],data["magic"], data["zana"])
+        for i in range(68,83):
+            out += "," + str(data["loot"].count(i))
+        out += ","
+        out += '|'.join(data["note"])
+        return out 
+def dict_from_csv(line):
+    data = line.split(',')
+    loot = []
+    for i in range(11,26):
+        if int(data[i]) > 0:
+            for i in range(int(data[i])):
+                loot.append(i+67)
+    tmp ={"timestamp":data[0], "character":data[1],"level":data[2], "psize":data[3], "iiq":data[4], "boss": data[5], "ambush": data[6], "beyond": data[7],"domination": data[8],  "magic": data[9],"zana" : data[10], "loot":loot }
+    return tmp
+
+def contactserver(data):
+    # Create a socket (SOCK_STREAM means a TCP socket)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+     # Connect to server and send data
+    sock.connect((c.map_server_host, c.map_server_port))
+    b = json.dumps(data).encode('utf-8')
+    sock.sendall(b)
+
+   # Receive data from the server and shut down
+    received = str(sock.recv(1024), "utf-8")
+    print("Sent:     {}".format(data))
+    print("Received: {}".format(received))
+    return format(received)    
+    
+    
