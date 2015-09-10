@@ -110,7 +110,11 @@ class MapRecorder():
             if c.getboolean("map_recorder", "send_data"):
                 self.data[-1]["timestamp"] = int(time.time())
                 self.data[-1]["username"] = self.data[-1]["character"] if c.getboolean("map_recorder", "send_data") else "anonymous"
-                util.contact_server(self.data[-1])
+                response = util.contact_server(self.data[-1])
+                if "OK" in response:
+                    logger.info("Server response: {0}".format(response))
+                else:
+                    logger.error("Server response: {0}".format(response))
             self.data = self.data[:-1]
         else:
             logger.error("ERR: ending map with no active map")
