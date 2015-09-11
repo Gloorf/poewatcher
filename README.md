@@ -11,7 +11,7 @@ A python script for Path Of Exile controlled by in game text input (it scans the
 
 #Installation
 
-  You can grab the binary in the release section for windows use. If you want to run the python script, you will need python3(>=3.3).
+  You can grab the binary in the release section for windows use. If you want to run the python script, you will need python3(>=3.3), [pyperclip](https://pypi.python.org/pypi/pyperclip/) (used to access clipboard data for MapRecorder) and [click](https://pypi.python.org/pypi/click) (used to get the path to user config folder).
   
 # Quick start
 
@@ -71,3 +71,7 @@ me:1 # You killed 1 boss on this maps
   ```
   actions = ("start", "map start:", "add_map")
   ```
+  
+## Misc
+
+If you have a config.ini located in your app_dir (provided by click, see [the doc](http://click.pocoo.org/5/api/#click.get_app_dir) for more informations), rather than in the script directory, so you can change your config.ini without messing the git repo.

@@ -19,10 +19,12 @@
 import configparser
 import json
 from ast import literal_eval as make_tuple
+import click
+import os
+APP_NAME="Watch PoE"
 class Config(configparser.ConfigParser):
-    def __init__(self, conf_file):
+    def __init__(self):
         super().__init__(interpolation=None)
-        self.read(conf_file)
     def get_actions(self, section):
         raw = self.get(section, "actions").split("\n")
         out = []
@@ -31,5 +33,10 @@ class Config(configparser.ConfigParser):
         return out
     def get_list(self, section, name):
         return json.loads(self.get(section, name))
-    
-config = Config("config.ini")
+
+config = Config()    
+cwd = os.path.join(click.get_app_dir(APP_NAME), "config.ini")
+if os.path.isfile(cwd):
+    config.read(cwd)
+else:
+    config.read("config.ini")
