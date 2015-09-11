@@ -20,6 +20,7 @@ A python script for Path Of Exile controlled by in game text input (it scans the
 * [global].log_path. The path to the logs/ folder (not the Client.txt file). 
 * [map_recorder].send_data. Activated by default, sends data to my server for mass map data.
 * [map_recorder].output_path. The name of the .csv file where the data is stored
+* [map_recorder].additional_iiq. Set it to your zana level
 
 For others values, the name should either be clear enough, or should be explicited in the comment before.
 
@@ -35,7 +36,17 @@ You can add column after the 82, it won't be used.
 
 # Map recorder
 
-## Example
+
+## Ctrl-C reporting
+
+I recommend using this method for regulars maps (ie no ambush/domination mods added with zana, no unID maps, no additionnal IIQ with sacrifice piece/rampage mod ...). It's better to use the manual reporting method for them.
+
+* Hover over the map and hit ctrl+C
+* type "ms:" (or whatever keyword you defined) in chat.
+* The script will take information from the clipboard, adn start a map according to that. It will also add the "additional_iiq" value from the config file.
+* If there is info you can't get on the ctrl+c (IIQ from unID map, IIQ different because of sacrifice piece, ambush/domination mod from zana...), you can use the "medit:" command (see Available commands)
+
+## Manual reporting
 ```
 ms:75,14,134,m #Map level 75, 14 pack size, 134 IIQ, with magic monsters.
 ml:76 #Got a level 76 map
@@ -51,8 +62,10 @@ me:1 # You killed 1 boss on this maps
 * map note : (keyword)note. The note can be any size, comma will be removed though (to avoid breaking the .csv) ; multiples notes will be separated by a "|". Default keyword is **"mn:"**
 * map end : (keyword)[boss_killed]. You can omit boss_killed, in this case the default value in config.py will be used. Default keyword is **"me:"**
 * map abort : (keyword). Remove the last active map (if you made a mistake or whatever). Default keyword is **"ma:"**
+* map edit : (keyword)admz[,iiq,psize]. Edit the last active map, replace the mods with whatever is in "amdz" (see map start for more information about mods). If IIQ/packsize exists, the current IIQ/packsize will be replaced by it. Default keyword is **"medit:"**
 
 # Advanced
+
 ## Changing the keywords for action
   You need to look at the actions variable in the corresponding section in config.ini ([map_recorder] for example). Change simply the second value in the tuple by whatever you want. For example, if you want to use "map start:" as a keyword for starting the map, the line will be :
   ```
