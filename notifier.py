@@ -30,7 +30,7 @@ class Notifier():
     def send_notification(self, msg):
         cmd ='-i {0} "{1}" "{2}"'.format(self.icon_path, self.title, msg)
         if self.windows:
-            logger.warning("You shouldn't use logger on windows")
+            logger.warning("You shouldn't use notifier on windows")
         else:
             os.system('notify-send ' + cmd)
         #rstrip for prettyness (else we have an unnecessary newline)

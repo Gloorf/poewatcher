@@ -15,7 +15,6 @@
 
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
-from watchdog.observers import Observer
 from map_recorder import * 
 from notifier import *
 from generic_recorder import *
@@ -29,15 +28,13 @@ map_recorder = MapRecorder(c.get_actions("map_recorder"), c.get("global","separa
 notifier = Notifier(c.get_list("notifier","channels"), c.get("notifier","title"), c.get("notifier","icon_path"), windows)
 generic_recorder = GenericRecorder(c.get_actions("generic_recorder"), c.get("global","separator"), c.get("generic_recorder","output_path"), c.get_list("generic_recorder","headers"))
 poe_handler = PoeHandler(c.get_list("global","usernames"), c.get_actions("handler"), c.get("global","log_path"))
-observer = Observer()
-observer.schedule(poe_handler, c.get("global","log_path"), recursive=False)
-observer.start()
 logger.info("started watch_poe")
 ##Main loop
 try:
     while True:
         time.sleep(1)
         ##Where all the dirty work is done
+        poe_handler.read_new_lines()
         for message in poe_handler.messages:
             if not poe_active() and poe_handler.notifier:
                 notifier.parse_message(message)
@@ -60,8 +57,6 @@ try:
 
             
 except KeyboardInterrupt:
-    observer.stop()
     logger.info("Stopping watch_poe")
-observer.join()
 
 

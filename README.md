@@ -11,7 +11,7 @@ A python script for Path Of Exile controlled by in game text input (it scans the
 
 #Installation
 
-  You can grab the binary in the release section for windows use. If you want to run the python script, you will need python3(>=3.3) and [watchdog](https://pypi.python.org/pypi/infi.watchdog/0.6.3). watchdog can be easily installed using pip.
+  You can grab the binary in the release section for windows use. If you want to run the python script, you will need python3(>=3.3).
   
 # Quick start
 

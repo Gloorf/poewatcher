@@ -18,10 +18,9 @@
 import re
 import time
 import requests
-from watchdog.events import FileSystemEventHandler
 from config import config as c
 from log import logger
-class PoeHandler(FileSystemEventHandler):
+class PoeHandler():
     def __init__(self, usernames, actions, log_path):
         self.usernames = usernames
         self.notifier = c.getboolean("notifier", "on")
@@ -46,20 +45,16 @@ class PoeHandler(FileSystemEventHandler):
             if name + ": " in line:
                 return (line.replace(name + ": ", ""), name)
         return ("", "")
-        
-        
-    def on_modified(self, event):
-        if not event.is_directory and event.src_path.endswith("Client.txt"):
-            for line in self.file:
-                message = self.find_message(line)
-                #We store the message and process them later (in the main loop)
-                if message:
-                    self.messages.append(message)
-                    for abbr, func in self.actions:
-                        if abbr in message:
-                            func()
-                            
-                            
+                                            
+    def read_new_lines(self):
+        for line in self.file:
+            message = self.find_message(line)
+            #We store the message and process them later (in the main loop)
+            if message:
+                self.messages.append(message)
+                for abbr, func in self.actions:
+                    if abbr in message:
+                        func()
     def notifier_off(self):
         logger.info("Turning off notifier")
         self.notifier = False
