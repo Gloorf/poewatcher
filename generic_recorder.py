@@ -18,6 +18,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 import os
 from log import logger
+import time
 class GenericRecorder():
     def __init__(self, actions, separator, output_path, headers):
         
@@ -34,12 +35,13 @@ class GenericRecorder():
                 file.write(','.join(headers))
                 file.write("\n")
                 logger.info("Created output csv file for GenericRecorder")
-    def parse_message(self, msg):
+    def parse_message(self, msg, char_name):
         for abbr,func in self.actions:
             if abbr in msg:
-                func(msg.replace(abbr,""))
-    def add_loot(self, msg):
-        info = msg.split(self.separator)
+                func(msg.replace(abbr,""), char_name)
+    def add_loot(self, msg, char_name):
+        info = [char_name, str(int(time.time()))]
+        info += msg.split(self.separator)
         while len(info) < len(self.headers):
             info.append("")
         csv = ",".join(info)
