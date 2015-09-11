@@ -29,7 +29,7 @@ class PoeHandler(FileSystemEventHandler):
         self.messages = []
         for pr in actions:
             self.actions.append((pr[1], getattr(self, pr[2])))
-        self.file = open(log_path + "Client.txt", "r")
+        self.file = open(log_path + "Client.txt", "r", encoding='utf8')
         first = self.file.readline() #Read the first line
         for last in self.file: pass #Loop through the whole file (place us at the end of file)
 

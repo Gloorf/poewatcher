@@ -28,8 +28,8 @@ class GenericRecorder():
         for pr in actions:
             self.actions.append((pr[1], getattr(self, pr[2])))
         if not os.path.isfile(output_path):
-            open(output_path, "w+")
-        with open(output_path, "r+") as file:
+            open(output_path, "w+", encoding='utf8')
+        with open(output_path, "r+", encoding='utf8') as file:
             if os.path.getsize(output_path) == 0:
                 file.write(','.join(headers))
                 file.write("\n")
@@ -43,7 +43,7 @@ class GenericRecorder():
         while len(info) < len(self.headers):
             info.append("")
         csv = ",".join(info)
-        with open(self.output_path, "a") as file:
+        with open(self.output_path, "a", encoding='utf8') as file:
             file.write(csv)
             file.write("\n")
         logger.info("GenericRecorder wrote : {0}".format(csv))

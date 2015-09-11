@@ -32,8 +32,8 @@ class MapRecorder():
         self.output_path = output_path
         self.data = []
         if not os.path.isfile(output_path):
-            open(output_path, "w+")
-        with open(output_path, "r+") as file:
+            open(output_path, "w+", encoding='utf-8')
+        with open(output_path, "r+", encoding='utf-8') as file:
             if os.path.getsize(output_path) == 0:
                 file.write(headers)
                 file.write("\n")
@@ -103,7 +103,7 @@ class MapRecorder():
             self.data[-1]["boss"] = ''.join(filter(lambda x: x.isdigit(), msg))
             self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else c.get("map_recorder","default_boss")
             output = util.dict_to_csv(self.data[-1])
-            with open(self.output_path, "a") as file_out:
+            with open(self.output_path, "a", encoding='utf-8') as file_out:
                 file_out.write(output)
                 file_out.write("\n")
             logger.info("Map ended, i wrote : {0}".format(output))
