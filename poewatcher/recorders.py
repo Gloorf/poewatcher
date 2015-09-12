@@ -168,7 +168,8 @@ class MapRecorder():
                                     
     def add_loot(self, msg):
         if len(self.data) > 0:
-            info = [int(''.join(filter(lambda x: x.isdigit(), y))) for y in msg.split(self.separator)]
+            info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
+            info = [x if x.isdigit() else 0 for x in info]
             self.data[-1]["loot"] += info
             loggerMap.info("Adding loot : {0}".format(', '.join(str(x) for x in info)))
         else:
