@@ -1,15 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf8 -*-
-
 #Copyright (C) 2015 Guillaume DUPUY <glorf@glorf.fr>
-#This file is part of Watch Poe.
+#This file is part of Poe Watcher.
 
-#Watch PoE is free software: you can redistribute it and/or modify
+#PoE Watcher is free software: you can redistribute it and/or modify
 #it under the terms of the GNU Affero General Public License as published by
 #the Free Software Foundation, either version 3 of the License, or
 #(at your option) any later version.
 
-#Watch PoE is distributed in the hope that it will be useful,
+#PoE Watcher is distributed in the hope that it will be useful,
 #but WITHOUT ANY WARRANTY; without even the implied warranty of
 #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #GNU Affero General Public License for more details.
@@ -21,7 +20,7 @@ import json
 from ast import literal_eval as make_tuple
 import click
 import os
-APP_NAME="Watch PoE"
+APP_NAME="PoE Watcher"
 class Config(configparser.ConfigParser):
     def __init__(self):
         super().__init__(interpolation=None)
@@ -38,5 +37,6 @@ config = Config()
 cwd = os.path.join(click.get_app_dir(APP_NAME), "config.ini")
 if os.path.isfile(cwd):
     config.read(cwd)
+    pass
 else:
     config.read("config.ini")

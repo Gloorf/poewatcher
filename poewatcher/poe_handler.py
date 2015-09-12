@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf8 -*-
 #Copyright (C) 2015 Guillaume DUPUY <glorf@glorf.fr>
-#This file is part of Watch Poe.
+#This file is part of Poe Watcher.
 
-#Watch PoE is free software: you can redistribute it and/or modify
+#PoE Watcher is free software: you can redistribute it and/or modify
 #it under the terms of the GNU Affero General Public License as published by
 #the Free Software Foundation, either version 3 of the License, or
 #(at your option) any later version.
 
-#Watch PoE is distributed in the hope that it will be useful,
+#PoE Watcher is distributed in the hope that it will be useful,
 #but WITHOUT ANY WARRANTY; without even the implied warranty of
 #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #GNU Affero General Public License for more details.
@@ -18,8 +18,9 @@
 import re
 import time
 import requests
-from config import config as c
-from log import logger
+from . import config as c
+import logging
+logger = logging.getLogger(__name__)
 class PoeHandler():
     def __init__(self, usernames, actions, log_path):
         self.usernames = usernames
