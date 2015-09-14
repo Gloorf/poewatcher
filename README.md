@@ -62,8 +62,8 @@ me:1 # You killed 1 boss on this maps
 * map note : (keyword)note. The note can be any size, comma will be removed though (to avoid breaking the .csv) ; multiples notes will be separated by a "|". Default keyword is **"mn:"**
 * map end : (keyword)[boss_killed]. You can omit boss_killed, in this case the default value in config.py will be used. Default keyword is **"me:"**
 * map abort : (keyword). Remove the last active map (if you made a mistake or whatever). Default keyword is **"ma:"**
-* map edit : (keyword)admz[,iiq,psize]. Edit the last active map, replace the mods with whatever is in "amdz" (see map start for more information about mods). If IIQ/packsize exists, the current IIQ/packsize will be replaced by it. Default keyword is **"medit:"**
-
+* map edit : (keyword)level[,psize,iiq,abdmz]. Edit the last active map, same syntax as map_start. If IIQ/packsize exists, the current IIQ/packsize will be replaced by it. Default keyword is **"medit:"**
+* map name : (keyword)Name. Update the name for the last active map. Default keyword is **"mname:"**
 # Advanced
 
 ## Changing the keywords for action

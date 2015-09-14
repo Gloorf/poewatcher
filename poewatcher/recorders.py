@@ -65,6 +65,8 @@ MAP_PREFIXES = ["Anarchic","Antagonist's","Armoured","Bipedal","Burning","Capric
 "Overlord's","Punishing","Savage","Shocking","Skeletal","Slithering","Splitting","Titan's","Twinned","Undead","Unwavering","Zana's", 
 "Enraged", "Labyrinthine", "Massive", "Villainous" ]
 MAP_SUFFIXES = ["of Balance","of Bloodlines","of Congealment","of Deadlines","of Desecration","of Elemental Weakness","of Endurance","of Enfeeblement","of Exposure","of Flames","of Frenzy","of Fracturing","of Giants","of Hemomancy","of Ice","of Insulation","of Lightning","of Power","of Smothering","of Stasis","of Temporal Chains","of Venom","of Vulnerability", "of Commanders", "of Hordes", "of Suffering", "of the Warlord"]
+MAP_MIN_LEVEL = 66
+MAP_MAX_LEVEL = 82
 class MapRecorder():
     def __init__(self, actions, separator, output_path):
         self.actions = []
@@ -102,14 +104,17 @@ class MapRecorder():
     def add_map(self, msg, char_name):
         #We get the information from the clipboard if the msg is empty
         if not msg:
-            tmp = self.add_map_from_clipboard(msg, char_name)
+            tmp = self.map_data_from_clipboard(msg, char_name)
         else:
-            tmp = self.add_map_from_user_input(msg, char_name)
-        self.data.append(tmp)
-        loggerMap.info("Started {8} map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"], tmp["name"]))
-       
+            tmp = self.map_data_from_user_input(msg, char_name)
+        if tmp["level"] < MAP_MIN_LEVEL or tmp["level"] > MAP_MAX_LEVEL:
+            loggerMap.error("Tried to start map with a wrong level : {0}. Cancelling map start".format(tmp["level"]))
+        else:
+            self.data.append(tmp)
+            loggerMap.info("Started {8} map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"], tmp["name"]))
         
-    def add_map_from_clipboard(self, msg, char_name):
+        
+    def map_data_from_clipboard(self, msg, char_name):
         info = pyperclip.paste()
         lines = info.split("\n")
         name = ""
@@ -122,6 +127,8 @@ class MapRecorder():
         if "Rare" or "Unique" in lines[0]:#Rare/unique got their name between the Rarity: and the actual name
             name = lines[2]        
         name = name.replace(" Map","").strip() #Some cleanup
+        if not name:
+            loggerMap.warning("Couldn't get map name from clipboard data")
         #We store in b64 because of the many commas, \n and other stuff that can screw up the .csv
         #Also, directly decode bytes to string cause no point in storing bytes (we'll write them like every other stirngs)
         mods = base64.b64encode(bytes(info, 'utf-8')).decode("utf-8")
@@ -141,7 +148,7 @@ class MapRecorder():
         return tmp
             
             
-    def add_map_from_user_input(self, msg, char_name):
+    def map_data_from_user_input(self, msg, char_name):
         #We want lvl,psize,iiq,[mods]
         info = msg.split(self.separator)
         #In case of user input error, assume empty
@@ -158,15 +165,19 @@ class MapRecorder():
         return tmp
 
     def edit_map(self, msg):
-        #We want mods[,real_iiq,real_psize]
+        #Same as map_start (so why not using it ? :))
+        tmp = self.map_data_from_user_input(msg, self.data[-1]["character"])
+        for key in ["loot", "note", "name", "mods"]:
+            tmp[key] = self.data[-1][key]
         info = msg.split(self.separator)
+        if len(info) < 1:
+            loggerMap.warning("Called edit_map without arguments")
+        #If we don't input new psize/iiq, save 'em
+        if len(info) < 2:
+            tmp["psize"] = self.data[-1]["psize"]
+        if len(info) < 3:
+            tmp["iiq"] = self.data[-1]["iiq"]
         log = "Edited map"
-        while len(info)< 3:
-            info.append("")
-        self.data[-1]["zana"] = "z" in info[0]
-        self.data[-1]["ambush"] = "a" in info[0]
-        self.data[-1]["domination"] = "d" in info[0]
-        self.data[-1]["magic"] = "m" in info[0]
         if self.data[-1]["zana"]:
             log +=", with Zana"
         if self.data[-1]["ambush"]:
@@ -175,29 +186,33 @@ class MapRecorder():
             log +=", with Domination"
         if self.data[-1]["magic"]:
             log +=", with magic monsters"            
-        #Remove non-digit from info (for real_iiq, real_psize)
-        info[1] = ''.join(filter(lambda x: x.isdigit(), info[1]))
-        info[2] = ''.join(filter(lambda x: x.isdigit(), info[2]))
-        if info[1]:
-            self.data[-1]["iiq"] = info[1]
-            log += ", with new IIQ " + info[1]
-        if info[2]:
-            self.data[-1]["psize"] = info[2]
-            log +=", with new Pack Size " + info[2]
+        if tmp["level"] != self.data[-1]["level"]:
+            log += ", with new level " + info[0]
+        if tmp["psize"] != self.data[-1]["psize"]:
+            log += ", with new pack size " + info[1]
+        if tmp["iiq"] != self.data[-1]["iiq"]:
+            log += ", with new IIQ " + info[2]
         loggerMap.info(log)
+        self.data[-1] = tmp
         
     def update_name(self, msg):
         if len(self.data) > 0:
-            self.data[-1]["name"] = msg
-            loggerMap.info("Updating name to : {0}".format(msg))
+            if msg:
+                self.data[-1]["name"] = msg
+                loggerMap.info("Updating name to : {0}".format(msg))
+            else:
+                loggerMap.warning("Trying to update name with an empty name")
         else:
             loggerMap.error("Updating name with no active map")
     def add_loot(self, msg):
         if len(self.data) > 0:
             info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
             info = [x if x.isdigit() else 0 for x in info]
-            self.data[-1]["loot"] += info
-            loggerMap.info("Adding loot : {0}".format(', '.join(str(x) for x in info)))
+            if any(x < MAP_MIN_LEVEL or x > MAP_MAX_LEVEL for x in info):
+                loggerMap.warning("Warning : logging invalid maps (level < {0} or > {1})".format(MAP_MIN_LEVEL, MAP_MAX_LEVEL))
+            else:
+                self.data[-1]["loot"] += info
+                loggerMap.info("Adding loot : {0}".format(', '.join(str(x) for x in info)))
         else:
             loggerMap.error("adding loot with no active map")
             
@@ -208,7 +223,7 @@ class MapRecorder():
             self.data[-1]["note"].append(msg.replace(",",""))
             loggerMap.info("Adding note : {0}".format(msg))
         else:
-            loggerMap.error("ERR: adding note with no active map")
+            loggerMap.error("adding note with no active map")
 
 
     def abort_map(self, msg):
@@ -216,7 +231,7 @@ class MapRecorder():
             loggerMap.info("Removing last map")
             self.data = self.data[:-1]       
         else:
-            loggerMap.error("ERR: aborting map with no active map")
+            loggerMap.error("aborting map with no active map")
             
     def end_map(self, msg):
         if len(self.data) > 0:
@@ -237,4 +252,4 @@ class MapRecorder():
                     loggerMap.error("Server response: {0}".format(response))
             self.data = self.data[:-1]
         else:
-            loggerMap.error("ERR: ending map with no active map")        
+            loggerMap.error("ending map with no active map")        
