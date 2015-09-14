@@ -44,7 +44,7 @@ class GenericRecorder():
                 loggerGen.info("Created output csv file for GenericRecorder")
     def parse_message(self, msg, char_name):
         for abbr,func in self.actions:
-            if abbr in msg:
+            if msg.startswith(abbr):
                 func(msg.replace(abbr,""), char_name)
     def add_loot(self, msg, char_name):
         info = [char_name, str(int(time.time()))]
@@ -83,8 +83,9 @@ class MapRecorder():
                 
         
     def parse_message(self, msg, char_name):
+        matches = []
         for abbr,func in self.actions:
-            if abbr in msg:
+            if msg.startswith(abbr):
                 #We don't need to pass char_name to other function than add_map [still kinda ugly, will works on this to make it better]
                 if len(inspect.getargspec(func)[0]) == 3:
                     func(msg.replace(abbr,""), char_name)

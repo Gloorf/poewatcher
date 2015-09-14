@@ -45,6 +45,7 @@ try:
                 old_state = map_recorder.running()
                 map_recorder.parse_message(stripped, name)
                 generic_recorder.parse_message(stripped, name)
+                poe_handler.parse_message(stripped)
                 state = map_recorder.running()
                 #Change of stat (either map started/map ended)
                 if c.getboolean("handler","offline_while_maps") and state != old_state:

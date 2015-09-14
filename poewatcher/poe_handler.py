@@ -53,9 +53,10 @@ class PoeHandler():
             #We store the message and process them later (in the main loop)
             if message:
                 self.messages.append(message)
-                for abbr, func in self.actions:
-                    if abbr in message:
-                        func()
+    def parse_message(self, msg):
+        for abbr, func in self.actions:
+            if msg.startswith(abbr):
+                func()
     def notifier_off(self):
         logger.info("Turning off notifier")
         self.notifier = False
