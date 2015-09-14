@@ -23,6 +23,7 @@ import time
 import inspect
 import pyperclip
 import logging
+import base64
 loggerGen = logging.getLogger(__name__+".GenericRecorder")
 loggerMap = logging.getLogger(__name__+".MapRecorder")
 class GenericRecorder():
@@ -58,8 +59,12 @@ class GenericRecorder():
         
         
 
-MAP_HEADERS = "timestamp,character,level,pack size,IIQ,boss,ambush,beyond,domination,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes"
-
+MAP_HEADERS = "timestamp,character,level,pack size,IIQ,boss,ambush,beyond,domination,magic,zana,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,notes,name,mods"
+MAP_PREFIXES = ["Anarchic","Antagonist's","Armoured","Bipedal","Burning","Capricious","Ceremonial","Chaining","Demonic","Emanant",
+"Fecund","Feral","Fleet","Freezing","Grounded","Hexproof","Incombustible","Mirrored","Molten","Multifarious","Otherworldly",
+"Overlord's","Punishing","Savage","Shocking","Skeletal","Slithering","Splitting","Titan's","Twinned","Undead","Unwavering","Zana's", 
+"Enraged", "Labyrinthine", "Massive", "Villainous" ]
+MAP_SUFFIXES = ["of Balance","of Bloodlines","of Congealment","of Deadlines","of Desecration","of Elemental Weakness","of Endurance","of Enfeeblement","of Exposure","of Flames","of Frenzy","of Fracturing","of Giants","of Hemomancy","of Ice","of Insulation","of Lightning","of Power","of Smothering","of Stasis","of Temporal Chains","of Venom","of Vulnerability", "of Commanders", "of Hordes", "of Suffering", "of the Warlord"]
 class MapRecorder():
     def __init__(self, actions, separator, output_path):
         self.actions = []
@@ -100,11 +105,25 @@ class MapRecorder():
         else:
             tmp = self.add_map_from_user_input(msg, char_name)
         self.data.append(tmp)
-        loggerMap.info("Started map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"]))
+        loggerMap.info("Started {8} map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"], tmp["name"]))
        
         
     def add_map_from_clipboard(self, msg, char_name):
         info = pyperclip.paste()
+        lines = info.split("\n")
+        name = ""
+        if "Normal" in lines[0]: #normal maps have the name directly after rarity
+            name = lines[1]
+        if "Magic" in lines[0]: #We need to remove prefix + suffix
+            name = lines[1]
+            for affix in MAP_PREFIXES + MAP_SUFFIXES:
+                name = name.replace(affix, "")
+        if "Rare" or "Unique" in lines[0]:#Rare/unique got their name between the Rarity: and the actual name
+            name = lines[2]        
+        name = name.replace(" Map","").strip() #Some cleanup
+        #We store in b64 because of the many commas, \n and other stuff that can screw up the .csv
+        #Also, directly decode bytes to string cause no point in storing bytes (we'll write them like every other stirngs)
+        mods = base64.b64encode(bytes(info, 'utf-8')).decode("utf-8")
         regex_level = re.compile("Map Level: \d{2}")
         regex_psize = re.compile("Monster Pack Size: \+\d{1,3}")
         regex_quantity = re.compile("Item Quantity: \+\d{1,3}")
@@ -117,7 +136,7 @@ class MapRecorder():
         if regex_quantity.search(info):
             quantity = int(regex_quantity.findall(info)[0].replace("Item Quantity: +",""))  
         quantity += int(c.get("map_recorder", "additional_iiq"))
-        tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[]}
+        tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[], "name":name, "mods":mods}
         return tmp
             
             
@@ -127,7 +146,7 @@ class MapRecorder():
         #In case of user input error, assume empty
         while len(info) < 4:
             info.append("")            
-        tmp={"character":char_name,"level":0, "psize":0, "iiq":0, "ambush": ("a" in info[3]), "beyond": ("b" in info[3]),"domination": ("d" in info[3]),  "magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[]}
+        tmp={"character":char_name,"level":0, "psize":0, "iiq":0, "ambush": ("a" in info[3]), "beyond": ("b" in info[3]),"domination": ("d" in info[3]),  "magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[], "name":"", "mods":""}
         #We remove all non-digit character
         for i in range(0,3):
             info[i] = ''.join(filter(lambda x: x.isdigit(), info[i]))
@@ -165,7 +184,13 @@ class MapRecorder():
             self.data[-1]["psize"] = info[2]
             log +=", with new Pack Size " + info[2]
         loggerMap.info(log)
-                                    
+        
+    def update_name(self, msg):
+        if len(self.data) > 0:
+            self.data[-1]["name"] = msg
+            loggerMap.info("Updating name to : {0}".format(msg))
+        else:
+            loggerMap.error("Updating name with no active map")
     def add_loot(self, msg):
         if len(self.data) > 0:
             info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]

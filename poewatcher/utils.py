@@ -55,6 +55,7 @@ def dict_to_csv(data):
             out += "," + str(data["loot"].count(i))
         out += ","
         out += '|'.join(data["note"])
+        out += ",{0},{1}".format(data["name"], data["mods"])
         return out 
 def dict_from_csv(line):
     data = line.split(',')
