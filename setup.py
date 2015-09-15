@@ -2,7 +2,8 @@ from distutils.core import setup
 import os
 if os.name == "nt":
     import py2exe
-DATA=[("", ["poewatcher/config.ini","logging.ini", "LICENSE", "README.md"])]
+DATA=[("", ["poewatcher/config.ini","logging.json", "LICENSE", "README.md"]),
+      ("extras/", ["extras/error.wav", "extras/warning.wav"])]
 setup(
     name = 'poewatcher',
     packages = ['poewatcher'],
@@ -26,7 +27,7 @@ setup(
     data_files = DATA,
     options={
             "py2exe": {
-                        "packages" : ["poewatcher"],
+                        "packages" : ["poewatcher", "pyglet"],
                         "bundle_files":2,
                         "skip_archive": True
                       }
