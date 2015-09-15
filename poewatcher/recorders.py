@@ -75,6 +75,7 @@ class MapRecorder():
         self.separator = separator
         self.output_path = output_path
         self.data = []
+        self.last_map_mods = ""
         if not os.path.isfile(output_path):
             open(output_path, "w+", encoding='utf-8')
         with open(output_path, "r+", encoding='utf-8') as file:
@@ -116,6 +117,9 @@ class MapRecorder():
         
     def map_data_from_clipboard(self, msg, char_name):
         info = pyperclip.paste()
+        if info == self.last_map_mods:
+            loggerMap.warning("Starting a map with the same mods as before !")
+        self.last_map_mods = info
         lines = info.split("\n")
         name = ""
         if "Normal" in lines[0]: #normal maps have the name directly after rarity
