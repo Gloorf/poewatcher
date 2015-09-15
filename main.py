@@ -16,11 +16,20 @@
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 import logging.config
-logging.config.fileConfig('logging.ini')
+from poewatcher.log import SoundHandler, WarningFilter
+from poewatcher import config as c
+import json
+with open("logging.json", "r") as f:
+    config = json.load(f)        
+#Have to set up filters while running, apparently can't do it while loading json :(
+config["filters"]["warning"]["()"] = WarningFilter
+config["handlers"]["sound_error_handler"]["volume"] = float(c.get("global", "volume"))
+config["handlers"]["sound_warning_handler"]["volume"] = float(c.get("global", "volume"))
+logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
 
 from poewatcher import MapRecorder, Notifier, GenericRecorder, PoeHandler
-from poewatcher import config as c
+
 from poewatcher import windows
 from poewatcher import utils
 import time

@@ -15,14 +15,15 @@
 
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
-__all__ = ['notifier', 'recorders', 'config', 'poe_handler']
-
-
-from .config import config
-from . import utils
-#Meh, really not sure of how i should do that
-from .utils import windows
-from .log import SoundHandler, WarningFilter
-from .notifier import Notifier
-from .recorders import GenericRecorder, MapRecorder
-from .poe_handler import PoeHandler
+import logging
+import pyglet
+class WarningFilter(logging.Filter):
+    def filter(self, rec):
+        return rec.levelno == logging.WARNING
+class SoundHandler(logging.Handler):
+    def __init__(self, sound_file, volume):
+        super().__init__()
+        self.sound = pyglet.media.load(sound_file, streaming=False)
+        self.volume = volume
+    def emit(self, record):
+        self.sound.play().volume = self.volume

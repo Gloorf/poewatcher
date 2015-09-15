@@ -158,7 +158,7 @@ class MapRecorder():
         #We remove all non-digit character
         for i in range(0,3):
             info[i] = ''.join(filter(lambda x: x.isdigit(), info[i]))
-            info[i] = info[i] if info[i] else 0
+            info[i] = int(info[i]) if info[i].isdigit() else 0
         tmp["level"] = info[0]
         tmp["psize"] = info[1]
         tmp["iiq"] = info[2]
@@ -207,7 +207,7 @@ class MapRecorder():
     def add_loot(self, msg):
         if len(self.data) > 0:
             info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
-            info = [x if x.isdigit() else 0 for x in info]
+            info = [int(x) if x.isdigit() else 0 for x in info]
             if any(x < MAP_MIN_LEVEL or x > MAP_MAX_LEVEL for x in info):
                 loggerMap.warning("Warning : logging invalid maps (level < {0} or > {1})".format(MAP_MIN_LEVEL, MAP_MAX_LEVEL))
             else:
