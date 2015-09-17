@@ -24,8 +24,14 @@ from poewatcher import Application, windows, utils
 from poewatcher import config as c
 from poewatcher import MapRecorder, Notifier, GenericRecorder, PoeHandler, Application
 root = tkinter.Tk()
-app = Application(master=root)
-
+#alpha sometimes doesn't work under some WM without that
+root.wait_visibility(root)
+root.wm_attributes('-alpha',float(c.get('gui_log_displayer', 'alpha')))
+root.wm_attributes('-topmost', c.getboolean('gui_log_displayer', 'always_on_top'))
+gui = Application(c.get_actions('gui_log_displayer'), c.getboolean("gui_log_displayer", "active"), master=root)
+#Hide gui at start if needed
+if not gui.isActive():
+    root.withdraw()
 logging_options = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -76,7 +82,7 @@ logging_options = {
             "class": "poewatcher.log.TextHandler",
             "level": "DEBUG",
             "formatter": "simple",
-            "text":app.log_display
+            "text":gui.log_display
        }
     },
 
@@ -110,10 +116,19 @@ def loop():
         name = c.get("map_recorder","logged_username") if c.get("map_recorder","logged_username") else name
         if stripped:
             old_state = map_recorder.running()
+            old_gui_state = gui.isActive()
             map_recorder.parse_message(stripped, name)
             generic_recorder.parse_message(stripped, name)
             poe_handler.parse_message(stripped)
+            gui.parse_message(stripped)
             state = map_recorder.running()
+            #Interactive hiding ;)
+            if old_gui_state != gui.isActive():
+                if gui.isActive():
+                    root.update()
+                    root.deiconify()
+                else:
+                    root.withdraw()
             #Change of stat (either map started/map ended)
             if c.getboolean("handler","offline_while_maps") and state != old_state:
                 if state:
