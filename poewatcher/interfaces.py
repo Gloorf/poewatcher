@@ -15,24 +15,17 @@
 
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
-__all__ = ['notifier', 'recorders', 'config', 'poe_handler', 'interfaces', 'log']
+import tkinter
+import tkinter.scrolledtext
+import time
 
-
-from .config import config
-from . import utils
-#Meh, really not sure of how i should do that
-from .utils import windows
-from .log import SoundHandler, WarningFilter, TextHandler
-from .notifier import Notifier
-from .recorders import GenericRecorder, MapRecorder
-from .poe_handler import PoeHandler
-from .interfaces import Application
-import logging
-try:  # Python 2.7+
-    from logging import NullHandler
-except ImportError:
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
-
-logging.getLogger(__name__).addHandler(NullHandler())
+class Application(tkinter.Frame):
+    """A really really simple application to display logs"""
+    def __init__(self, master=None):
+        tkinter.Frame.__init__(self, master)
+        self.pack()
+        self.createWidgets()
+    def createWidgets(self):
+        self.log_display = tkinter.scrolledtext.ScrolledText(self, state='disabled')
+        self.log_display.configure(font='TkFixedFont')
+        self.log_display.pack()
