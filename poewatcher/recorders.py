@@ -120,36 +120,42 @@ class MapRecorder():
         if info == self.last_map_mods:
             loggerMap.warning("Starting a map with the same mods as before !")
         self.last_map_mods = info
-        lines = info.split("\n")
-        name = ""
-        if "Normal" in lines[0]: #normal maps have the name directly after rarity
-            name = lines[1]
-        if "Magic" in lines[0]: #We need to remove prefix + suffix
-            name = lines[1]
-            for affix in MAP_PREFIXES + MAP_SUFFIXES:
-                name = name.replace(affix, "")
-        if "Rare" or "Unique" in lines[0]:#Rare/unique got their name between the Rarity: and the actual name
-            name = lines[2]        
-        name = name.replace(" Map","").strip() #Some cleanup
-        if not name:
-            loggerMap.warning("Couldn't get map name from clipboard data")
-        #We store in b64 because of the many commas, \n and other stuff that can screw up the .csv
-        #Also, directly decode bytes to string cause no point in storing bytes (we'll write them like every other stirngs)
-        mods = base64.b64encode(bytes(info, 'utf-8')).decode("utf-8")
-        regex_level = re.compile("Map Level: \d{2}")
-        regex_psize = re.compile("Monster Pack Size: \+\d{1,3}")
-        regex_quantity = re.compile("Item Quantity: \+\d{1,3}")
-        level = psize = quantity = 0
-        magic = "more Magic Monsters" in info
-        if regex_level.search(info):
-            level = int(regex_level.findall(info)[0].replace("Map Level: ",""))
-        if regex_psize.search(info):
-            psize = int(regex_psize.findall(info)[0].replace("Monster Pack Size: +",""))
-        if regex_quantity.search(info):
-            quantity = int(regex_quantity.findall(info)[0].replace("Item Quantity: +",""))  
-        quantity += int(c.get("map_recorder", "additional_iiq"))
-        tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[], "name":name, "mods":mods}
-        return tmp
+        #Check if the clipboard data is actually a map
+        if info.startswith("Rarity:") and (info.endswith("Corrupted") or info.endswith("Maps can only be used once.")):
+            lines = info.split("\n")
+            name = ""
+            if "Normal" in lines[0]: #normal maps have the name directly after rarity
+                name = lines[1]
+            if "Magic" in lines[0]: #We need to remove prefix + suffix
+                name = lines[1]
+                for affix in MAP_PREFIXES + MAP_SUFFIXES:
+                    name = name.replace(affix, "")
+            if "Rare" or "Unique" in lines[0]:#Rare/unique got their name between the Rarity: and the actual name
+                name = lines[2]        
+            name = name.replace(" Map","").strip() #Some cleanup
+            if not name:
+                loggerMap.warning("Couldn't get map name from clipboard data")
+            #We store in b64 because of the many commas, \n and other stuff that can screw up the .csv
+            #Also, directly decode bytes to string cause no point in storing bytes (we'll write them like every other stirngs)
+            mods = base64.b64encode(bytes(info, 'utf-8')).decode("utf-8")
+            regex_level = re.compile("Map Level: \d{2}")
+            regex_psize = re.compile("Monster Pack Size: \+\d{1,3}")
+            regex_quantity = re.compile("Item Quantity: \+\d{1,3}")
+            level = psize = quantity = 0
+            magic = "more Magic Monsters" in info
+            if regex_level.search(info):
+                level = int(regex_level.findall(info)[0].replace("Map Level: ",""))
+            if regex_psize.search(info):
+                psize = int(regex_psize.findall(info)[0].replace("Monster Pack Size: +",""))
+            if regex_quantity.search(info):
+                quantity = int(regex_quantity.findall(info)[0].replace("Item Quantity: +",""))  
+            quantity += int(c.get("map_recorder", "additional_iiq"))
+            tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[], "name":name, "mods":mods}
+            return tmp
+        else:
+            logger.error("Trying to use clipboard data but couldn't find a map-like data in clipboard, aborting")
+            tmp = {"level":0}
+            return tmp
             
             
     def map_data_from_user_input(self, msg, char_name):
