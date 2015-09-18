@@ -153,7 +153,7 @@ class MapRecorder():
             tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[], "name":name, "mods":mods}
             return tmp
         else:
-            logger.error("Trying to use clipboard data but couldn't find a map-like data in clipboard, aborting")
+            loggerMap.error("Trying to use clipboard data but couldn't find a map-like data in clipboard, aborting")
             tmp = {"level":0}
             return tmp
             

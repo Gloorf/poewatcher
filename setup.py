@@ -2,7 +2,7 @@ from distutils.core import setup
 import os
 if os.name == "nt":
     import py2exe
-DATA=[("", ["poewatcher/config.ini","logging.json", "LICENSE", "README.md"]),
+DATA=[("", ["poewatcher/config.ini", "LICENSE", "README.md"]),
       ("extras/", ["extras/error.wav", "extras/warning.wav"])]
 setup(
     name = 'poewatcher',
