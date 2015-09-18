@@ -121,7 +121,7 @@ class MapRecorder():
             loggerMap.warning("Starting a map with the same mods as before !")
         self.last_map_mods = info
         #Check if the clipboard data is actually a map
-        if info.startswith("Rarity:") and (info.endswith("Corrupted") or info.endswith("Maps can only be used once.")):
+        if info.startswith("Rarity:") and (info.endswith("Corrupted\n") or info.endswith("Maps can only be used once.\n")):
             lines = info.split("\n")
             name = ""
             if "Normal" in lines[0]: #normal maps have the name directly after rarity
