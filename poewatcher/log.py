@@ -18,6 +18,7 @@
 import logging
 import pyglet
 import tkinter
+logger = logging.getLogger(__name__)
 class WarningFilter(logging.Filter):
     def filter(self, rec):
         return rec.levelno == logging.WARNING
@@ -36,9 +37,7 @@ class TextHandler(logging.Handler):
         logging.Handler.__init__(self)
         # Store a reference to the Text it will log to
         self.text = text
-        self.text.tag_config("warning", foreground="orange")
-        self.text.tag_config("error", foreground="red")
-        self.text.tag_config("normal", foreground="black")
+
 
     def emit(self, record):
         msg = self.format(record)
@@ -56,9 +55,38 @@ class TextHandler(logging.Handler):
             self.text.yview(tkinter.END)
         # This is necessary because we can't modify the Text from other threads
         self.text.after(0, append)
-log = logging.getLogger(__name__)
-
-def dummy():
-    log.info("This is an info")
-    log.warning("This is a warning")
-    log.error("This is an error")
+""" Add a line to a ScrolledText
+If the ScrolledText have a warning/error/normal tag, it will be used for nice formatting """        
+def append(text, record, msg):
+    text.configure(state='normal')
+    if record.levelno == logging.WARNING:
+        text.insert(tkinter.END, msg + '\n', ("warning"))
+    elif record.levelno == logging.ERROR:
+        text.insert(tkinter.END, msg + '\n', ("error"))
+    else:
+        text.insert(tkinter.END, msg + '\n', ("normal"))
+    text.configure(state='disabled')
+# Autoscroll to the bottom
+    text.yview(tkinter.END)
+                    
+class ExtendedNotebookHandler(logging.Handler):
+    """Logs to an ExtendedNotebook, putting every log in the first tab and creating a tab for each additional the log can come from
+       TODO : abort creation of class if notebook is *not* an ExtendedNotebook """
+    def __init__(self, notebook):
+        logging.Handler.__init__(self)
+        self.nb = notebook
+            
+    def emit(self, record):
+        msg = self.format(record)
+        selected = self.nb.find_tab_by_name(record.module)
+        #If we don't have a tab, just create one
+        
+        if selected == -1:
+            self.nb.add_tab(record.module)
+            selected = len(self.nb.tabs) - 1
+        
+        # This is necessary because we can't modify the Text from other threads
+        #Add information to the tabs + all tab (the 1st one)
+        self.nb.tabs[selected].after(0, append(self.nb.tabs[selected], record, msg))
+        self.nb.tabs[0].after(0, append(self.nb.tabs[0], record, msg))     
+        

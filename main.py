@@ -78,12 +78,13 @@ logging_options = {
             "sound_file": "extras/warning.wav",
             "volume": float(c.get("global","volume"))
        },
-       "text_handler": {
-            "class": "poewatcher.log.TextHandler",
+       "gui_display_handler": {
+            "class": "poewatcher.log.ExtendedNotebookHandler",
             "level": "DEBUG",
             "formatter": "simple",
-            "text":gui.log_display
-       }
+            "notebook": gui.nb
+            }
+
     },
 
     "loggers": {
@@ -95,7 +96,7 @@ logging_options = {
 
     "root": {
         "level": "DEBUG",
-        "handlers": ["console", "text_handler", "file_handler", "sound_warning_handler", "sound_error_handler"]
+        "handlers": ["console", "gui_display_handler", "file_handler", "sound_warning_handler", "sound_error_handler"]
     }
 }
 logging.config.dictConfig(logging_options)

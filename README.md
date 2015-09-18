@@ -33,7 +33,16 @@ For others values, the name should either be clear enough, or should be explicit
 
 You can add column after the 82, it won't be used.
   
+# GUI Display
 
+  You can use a GUI to display your log. Relevant options in config.ini :
+  * [global].alpha : transparency of the windows
+  * [global].active : display it at the start of the game
+  * [global].always_on_tp : put the windows always on top
+
+  You can deactivate (it just hide the windows actually) by typing "display off", and reactivating it by "display on".
+  
+  
 # Map recorder
 
 
