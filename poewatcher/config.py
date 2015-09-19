@@ -38,5 +38,7 @@ cwd = os.path.join(click.get_app_dir(APP_NAME), "config.ini")
 if os.path.isfile(cwd):
     config.read(cwd)
     pass
-else:
+elif os.path.isfile("config.ini"):
     config.read("config.ini")
+elif os.path.isfile("poewatcher/config.ini"):
+    config.read("poewatcher/config.ini")
