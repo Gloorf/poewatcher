@@ -108,6 +108,9 @@ class MapRecorder():
             tmp = self.map_data_from_clipboard(msg, char_name)
         else:
             tmp = self.map_data_from_user_input(msg, char_name)
+        #Ugly hack to avoid double error message (in case of wrong data in clipboard)
+        if tmp["psize"] == -3:
+            return
         if tmp["level"] < MAP_MIN_LEVEL or tmp["level"] > MAP_MAX_LEVEL:
             loggerMap.error("Tried to start map with a wrong level : {0}. Cancelling map start".format(tmp["level"]))
         else:
@@ -121,7 +124,7 @@ class MapRecorder():
             loggerMap.warning("Starting a map with the same mods as before !")
         self.last_map_mods = info
         #Check if the clipboard data is actually a map
-        if info.startswith("Rarity:") and (info.endswith("Corrupted\n") or info.endswith("Maps can only be used once.\n")):
+        if info.startswith("Rarity:") and "Travel to this Map by using it in the Eternal Laboratory" in info:
             lines = info.split("\n")
             name = ""
             if "Normal" in lines[0]: #normal maps have the name directly after rarity
@@ -154,7 +157,7 @@ class MapRecorder():
             return tmp
         else:
             loggerMap.error("Trying to use clipboard data but couldn't find a map-like data in clipboard, aborting")
-            tmp = {"level":0}
+            tmp = {"level":0, "psize":-3}
             return tmp
             
             
