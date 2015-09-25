@@ -35,7 +35,7 @@ class CsvManager():
         else:
             logger.warning("Tried to open {0} but couldn't :|".format(self.filename))
     def write_to_tackle_csv(self, output_path):
-        """ Use the self.data to put all information into a csv with the right format for tacke70's spreadsheet [ see http://poe.glorf.fr/PoE%202.0%20Map%20Log%20Empty.ods ] """
+        """ Use the self.data to put all information into a csv with the right format for tacke70's spreadsheet [ see http://exiletools.com/tackle70/ ] """
         if os.path.isfile(output_path):
             logger.warning("The output {0} already exists ; i deleted it to write the new one".format(output_path))
         with open(output_path, "w", encoding="utf-8")as file:
