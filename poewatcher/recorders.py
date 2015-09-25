@@ -41,7 +41,7 @@ class GenericRecorder():
             if os.path.getsize(output_path) == 0:
                 file.write(','.join(headers))
                 file.write("\n")
-                loggerGen.info("Created output csv file for GenericRecorder")
+                loggerGen.info("Created output csv file")
     def parse_message(self, msg, char_name):
         for abbr,func in self.actions:
             if msg.startswith(abbr):
@@ -82,7 +82,7 @@ class MapRecorder():
             if os.path.getsize(output_path) == 0:
                 file.write(MAP_HEADERS)
                 file.write("\n")
-                loggerMap.info("Created output csv file for MapRecorder")
+                loggerMap.info("Created output csv file")
                 
         
     def parse_message(self, msg, char_name):
@@ -262,7 +262,27 @@ class MapRecorder():
                 if "OK" in response:
                     loggerMap.info("Server response: {0}".format(response))
                 else:
+                #If server is down, logs data to a local file
                     loggerMap.error("Server response: {0}".format(response))
+                output_path = "unsent_" + self.output_path
+                if not os.path.isfile(output_path):
+                    open(output_path, "w+", encoding='utf-8')
+                with open(output_path, "a", encoding='utf-8') as file:
+                    if os.path.getsize(output_path) == 0:
+                        file.write(MAP_HEADERS)
+                        file.write("\n")
+                        loggerMap.info("Created output csv file for unsent data")
+                    file.write(output)
+                    file.write("\n")
+                loggerMap.info("Logged data to {0}, you can send them later by typing 'map:force_send'".format(output_path))
+                                    
+                
+                
             self.data = self.data[:-1]
         else:
             loggerMap.error("ending map with no active map")        
+            
+            
+            
+            
+            
