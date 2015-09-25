@@ -66,7 +66,6 @@ def dict_from_csv(line):
             for j in range(int(data[i])):
                 loot.append(i+57)
     tmp ={"timestamp":data[0], "character":data[1],"level":data[2], "psize":data[3], "iiq":data[4], "boss": data[5], "ambush": ast.literal_eval(data[6]), "beyond": ast.literal_eval(data[7]),"domination": ast.literal_eval(data[8]),  "magic": ast.literal_eval(data[9]),"zana" : ast.literal_eval(data[10]), "loot":loot, "name":"", "mods":""}
-    print(loot)
     #Some older recording don't have name / mods in it
     if len(data) > 27:
         tmp["name"] = data[27]
@@ -78,24 +77,25 @@ def dict_from_csv(line):
 def dict_to_tackle_csv(data):
     zana_mod = 1 if (data["ambush"] or data["domination"]) else ""
     #First Lvl, IIQ, psize, kill, instance crash, Zana mission, Zana mod
-    output = "{0},{1},{2},{3},{4},{5},{6}".format(data["level"],data["iiq"],data["psize"],data["boss"],"",(1 if data["zana"] else 0), zana_mod)
+    output = "{0},{1},{2},{3},{4},{5},{6}".format(data["level"],data["iiq"],data["psize"],data["boss"],"",(1 if data["zana"] else ""), zana_mod)
     #Second data from 82 to 68
     for i in range(82,67,-1):
         output += "," + str(data["loot"].count(i))
-        print(i, data["loot"])
     return output
     
 def contact_server(data):
     # Create a socket (SOCK_STREAM means a TCP socket)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         # Connect to server and send data
+        sock.connect((c.get("map_recorder", "server_host"), int(c.get("map_recorder", "server_port"))))
+        b = json.dumps(data).encode('utf-8')
+        sock.sendall(b)
 
-     # Connect to server and send data
-    sock.connect((c.get("map_recorder", "server_host"), int(c.get("map_recorder", "server_port"))))
-    b = json.dumps(data).encode('utf-8')
-    sock.sendall(b)
-
-   # Receive data from the server and shut down
-    received = str(sock.recv(1024), "utf-8")
-    return format(received)    
+       # Receive data from the server and shut down
+        received = str(sock.recv(1024), "utf-8")
+        return format(received)
+    except Exception as e:
+        return format(e)    
     
     
