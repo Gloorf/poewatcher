@@ -20,6 +20,7 @@ from . import config as c
 import time
 import socket
 import json
+import ast
 if os.name == "nt":
     windows = True
     import subprocess
@@ -58,15 +59,32 @@ def dict_to_csv(data):
         out += ",{0},{1}".format(data["name"], data["mods"])
         return out 
 def dict_from_csv(line):
-    data = line.split(',')
+    data = line.rstrip().split(',')
     loot = []
     for i in range(11,26):
         if int(data[i]) > 0:
-            for i in range(int(data[i])):
-                loot.append(i+67)
-    tmp ={"timestamp":data[0], "character":data[1],"level":data[2], "psize":data[3], "iiq":data[4], "boss": data[5], "ambush": data[6], "beyond": data[7],"domination": data[8],  "magic": data[9],"zana" : data[10], "loot":loot }
+            for j in range(int(data[i])):
+                loot.append(i+57)
+    tmp ={"timestamp":data[0], "character":data[1],"level":data[2], "psize":data[3], "iiq":data[4], "boss": data[5], "ambush": ast.literal_eval(data[6]), "beyond": ast.literal_eval(data[7]),"domination": ast.literal_eval(data[8]),  "magic": ast.literal_eval(data[9]),"zana" : ast.literal_eval(data[10]), "loot":loot, "name":"", "mods":""}
+    print(loot)
+    #Some older recording don't have name / mods in it
+    if len(data) > 27:
+        tmp["name"] = data[27]
+    if len (data) > 28:
+        tmp["mods"] = data[28]
     return tmp
-
+    
+    
+def dict_to_tackle_csv(data):
+    zana_mod = 1 if (data["ambush"] or data["domination"]) else ""
+    #First Lvl, IIQ, psize, kill, instance crash, Zana mission, Zana mod
+    output = "{0},{1},{2},{3},{4},{5},{6}".format(data["level"],data["iiq"],data["psize"],data["boss"],"",(1 if data["zana"] else 0), zana_mod)
+    #Second data from 82 to 68
+    for i in range(82,67,-1):
+        output += "," + str(data["loot"].count(i))
+        print(i, data["loot"])
+    return output
+    
 def contact_server(data):
     # Create a socket (SOCK_STREAM means a TCP socket)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

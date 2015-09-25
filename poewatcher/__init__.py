@@ -15,7 +15,7 @@
 
 #You should have received a copy of the GNU Affero General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
-__all__ = ['notifier', 'recorders', 'config', 'poe_handler', 'interfaces', 'log']
+__all__ = ['notifier', 'recorders', 'config', 'poe_handler', 'interfaces', 'log', "csv_manager"]
 
 
 from .config import config
@@ -27,6 +27,7 @@ from .notifier import Notifier
 from .recorders import GenericRecorder, MapRecorder
 from .poe_handler import PoeHandler
 from .interfaces import Application
+from .csv_manager import CsvManager
 import logging
 try:  # Python 2.7+
     from logging import NullHandler
