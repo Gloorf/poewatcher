@@ -101,12 +101,13 @@ logging_options = {
 }
 logging.config.dictConfig(logging_options)
 logger = logging.getLogger(__name__)
+logger.info("started watch_poe")
 ##Init stuff
 map_recorder = MapRecorder(c.get_actions("map_recorder"), c.get("global","separator"), c.get("map_recorder","output_path"))
 notifier = Notifier(c.get_list("notifier","channels"), c.get("notifier","title"), c.get("notifier","icon_path"), windows)
 generic_recorder = GenericRecorder(c.get_actions("generic_recorder"), c.get("global","separator"), c.get("generic_recorder","output_path"), c.get_list("generic_recorder","headers"))
 poe_handler = PoeHandler(c.get_list("global","usernames"), c.get_actions("handler"), c.get("global","log_path"))
-logger.info("started watch_poe")
+
 ##Main loop
 def loop():
     poe_handler.read_new_lines()
