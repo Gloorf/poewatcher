@@ -80,7 +80,7 @@ me:1 # You killed 1 boss on this maps
 
 ## Using your recorded data with a map analyser
 
-In this example i'll be using [tackle70's spreadsheet](https://docs.google.com/spreadsheets/d/1qoTlUlq630svWh4oy_OQVOA-vqwm0DUGDpVft59Gnmw/edit?pli=1#gid=1866770458). If you have any problem with the .ods export, you can use [this one](http://poe.glorf.fr/PoE%202.0%20Map%20Log%20Empty.ods).
+In this example i'll be using [tackle70's spreadsheet](https://docs.google.com/spreadsheets/d/1qoTlUlq630svWh4oy_OQVOA-vqwm0DUGDpVft59Gnmw/edit?pli=1#gid=1866770458). If you have any problem with the .ods export, you can use [this one](http://exiletools.com/tackle70/).
 
 What we have to do is open the map_data.csv file with Libreoffice (or excel), and move around the columns (works with any spreadsheet analyser). Unfortunately, tackle's spreadsheet have relatively different column (map drops goes from 82 to 68 where poewatcher records them from 68 to 82 among other things), and it's a bit annoying. Fortunately, poewatcher is a great program who can do it for you. Just write
 `map:export_tackle` in your chat, it will put the good csv in "tackle_"+[map_recorder].output_path
