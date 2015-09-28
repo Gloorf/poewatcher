@@ -55,6 +55,9 @@ class Application(tkinter.Frame):
 
 
 class ExtendedNotebook(tkinter.ttk.Notebook):
+    """ A Notebook that haves more powerful tabs
+    Used to display logs
+    """
     def __init__(self, master=None):
         tkinter.ttk.Notebook.__init__(self)
         self.tabs = []

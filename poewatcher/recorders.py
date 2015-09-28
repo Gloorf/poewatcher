@@ -27,6 +27,7 @@ import base64
 loggerGen = logging.getLogger(__name__+".GenericRecorder")
 loggerMap = logging.getLogger(__name__+".MapRecorder")
 class GenericRecorder():
+    """ Simple recorder who save to a .csv basic recording """
     def __init__(self, actions, separator, output_path, headers):
         
         self.output_path = output_path
@@ -43,6 +44,7 @@ class GenericRecorder():
                 file.write("\n")
                 loggerGen.info("Created output csv file")
     def parse_message(self, msg, char_name):
+        """ find matching keywords and start associated function """
         for abbr,func in self.actions:
             if msg.startswith(abbr):
                 func(msg.replace(abbr,""), char_name)
@@ -68,6 +70,9 @@ MAP_SUFFIXES = ["of Balance","of Bloodlines","of Congealment","of Deadlines","of
 MAP_MIN_LEVEL = 66
 MAP_MAX_LEVEL = 82
 class MapRecorder():
+    """ Manager who creates/destroy/edit new Map object based on user input 
+    Also sends map data to a server
+    """
     def __init__(self, actions, separator, output_path):
         self.actions = []
         for pr in actions:
@@ -86,6 +91,7 @@ class MapRecorder():
                 
         
     def parse_message(self, msg, char_name):
+         """ find matching keywords and start associated function """
         matches = []
         for abbr,func in self.actions:
             if msg.startswith(abbr):
@@ -103,6 +109,9 @@ class MapRecorder():
         
                       
     def add_map(self, msg, char_name):
+        """ Add a Map Object to self.data
+        Can be done via input or clipboard data
+        """
         #We get the information from the clipboard if the msg is empty
         if not msg:
             tmp = self.map_data_from_clipboard(msg, char_name)
@@ -119,6 +128,9 @@ class MapRecorder():
         
         
     def map_data_from_clipboard(self, msg, char_name):
+        """ Return a Map Object, try to use information in clipboard.
+        Will not work with clipboard information not conform to PoE clipboard data
+        """
         info = pyperclip.paste()
         if info == self.last_map_mods:
             loggerMap.warning("Starting a map with the same mods as before !")
@@ -162,6 +174,9 @@ class MapRecorder():
             
             
     def map_data_from_user_input(self, msg, char_name):
+        """ Return a Map Object based on user input 
+        Check README for more information about the msg format
+        """
         #We want lvl,psize,iiq,[mods]
         info = msg.split(self.separator)
         #In case of user input error, assume empty
@@ -178,7 +193,9 @@ class MapRecorder():
         return tmp
 
     def edit_map(self, msg):
-        #Same as map_start (so why not using it ? :))
+        """ Edit last active Map. Uses map_data_from_user_input syntax.
+        /!\ Erase old data if new corresponding data is inputed
+        """
         tmp = self.map_data_from_user_input(msg, self.data[-1]["character"])
         for key in ["loot", "note", "name", "mods"]:
             tmp[key] = self.data[-1][key]
@@ -209,6 +226,7 @@ class MapRecorder():
         self.data[-1] = tmp
         
     def update_name(self, msg):
+        """ Replace last active Map name by msg """
         if len(self.data) > 0:
             if msg:
                 self.data[-1]["name"] = msg
@@ -218,6 +236,7 @@ class MapRecorder():
         else:
             loggerMap.error("Updating name with no active map")
     def add_loot(self, msg):
+        """ Add map loot to the last active Map """
         if len(self.data) > 0:
             info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
             info = [int(x) if x.isdigit() else 0 for x in info]
@@ -231,6 +250,7 @@ class MapRecorder():
             
             
     def add_note(self, msg):
+        """Add a note to the last active Map """
         if len(self.data) > 0:
             #Remove the comma to not break the .csv
             self.data[-1]["note"].append(msg.replace(",",""))
@@ -240,6 +260,7 @@ class MapRecorder():
 
 
     def abort_map(self, msg):
+        """ Remove last active Map without saving it"""
         if len(self.data) > 0:
             loggerMap.info("Removing last map")
             self.data = self.data[:-1]       
@@ -247,6 +268,7 @@ class MapRecorder():
             loggerMap.error("aborting map with no active map")
             
     def end_map(self, msg):
+        """Does a bunch of stuff """
         if len(self.data) > 0:
             self.data[-1]["boss"] = ''.join(filter(lambda x: x.isdigit(), msg))
             self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else c.get("map_recorder","default_boss")

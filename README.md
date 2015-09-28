@@ -86,7 +86,7 @@ What we have to do is open the map_data.csv file with Libreoffice (or excel), an
 `map:export_tackle` in your chat, it will put the good csv in "tackle_"+[map_recorder].output_path
 
 After that :
-* Open this file with libreoffice.
+* Open this file with libreoffice (with excel, follow [this](https://support.office.com/en-za/article/Import-or-export-text-txt-or-csv-files-5250ac4c-663c-47ce-937b-339e391393ba) tutorial to open a .csv)
 * Open tackle's spreadsheet
 * Remove map data from tackle's spreadsheet
 * Copy your data from the first file, paste it in tackle's spreadsheet starting in H4.

@@ -25,7 +25,10 @@ import logging
 import os
 logger = logging.getLogger(__name__)
 class PoeHandler():
-    def __init__(self, usernames, actions, log_path):
+    """ Manages a Client.txt file : reads from it, strip usernames from message
+    if needed, and manages poe.trade/notifier/map data export
+    """
+    def __init__(self, actions, usernames, log_path):
         self.usernames = usernames
         self.notifier = c.getboolean("notifier", "on")
         self.actions = []
@@ -39,6 +42,9 @@ class PoeHandler():
             logger.warning("You have unsent map data, you can send them by typing 'map:force_send'")
 
     def find_message(self, line):
+        """Return the message stripped of any prefixes (timestamp/INFO client)
+        If the message can't be found, it will return an empty string
+        """
         regex_msg = re.compile("\[INFO Client \d+\] (.*)")
         if regex_msg.search(line):
             return regex_msg.findall(line)[0]
@@ -46,18 +52,24 @@ class PoeHandler():
         
         
     def strip_username(self, line):
+        """ Return (message, name)
+        Strip the name (taken from self.usernames) if the name is in message;
+        Return ("", "") if no username can be found
+        """
         for name in self.usernames:
             if name + ": " in line:
                 return (line.replace(name + ": ", ""), name)
         return ("", "")
                                             
     def read_new_lines(self):
+        """ Add new lines from Client.txt to self.messages """
         for line in self.file:
             message = self.find_message(line)
             #We store the message and process them later (in the main loop)
             if message:
                 self.messages.append(message)
     def parse_message(self, msg):
+        """ find matching keywords and start associated function """
         for abbr, func in self.actions:
             if msg.startswith(abbr):
                 func()
@@ -80,6 +92,9 @@ class PoeHandler():
         else:
             logger.warning("Trying to set poetrade online but url is empty")
     def force_send_map(self):
+        """ Send data from unsent_[map_recorder].output_path to the server
+        Used when data couldn't be sent earlier (typically, server down
+        """
         path = "unsent_" + c.get("map_recorder", "output_path")
         logger.info("Trying to send data to server")
         if os.path.isfile(path):
@@ -98,6 +113,8 @@ class PoeHandler():
         else:
             logger.warning("I don't have any unsent map data, aborting")
     def export_data_to_tackle(self):
+        """ Export [map_recorder].output_path to tackle70's spreadsheet format
+        """
         path = c.get("map_recorder", "output_path")
         logger.info("Exporting data to tackle70's spreadsheet format")
         manager = CsvManager(path)

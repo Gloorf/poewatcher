@@ -23,6 +23,8 @@ from poewatcher.log import SoundHandler, WarningFilter, TextHandler
 from poewatcher import Application, windows, utils
 from poewatcher import config as c
 from poewatcher import MapRecorder, Notifier, GenericRecorder, PoeHandler, Application
+
+## GUI init
 root = tkinter.Tk()
 #alpha sometimes doesn't work under some WM without that
 root.wait_visibility(root)
@@ -32,6 +34,14 @@ gui = Application(c.get_actions('gui_log_displayer'), c.getboolean("gui_log_disp
 #Hide gui at start if needed
 if not gui.isActive():
     root.withdraw()
+## Script init
+map_recorder = MapRecorder(c.get_actions("map_recorder"), c.get("global","separator"), c.get("map_recorder","output_path"))
+notifier = Notifier(c.get_list("notifier","channels"), c.get("notifier","title"), c.get("notifier","icon_path"), windows)
+generic_recorder = GenericRecorder(c.get_actions("generic_recorder"), c.get("global","separator"), c.get("generic_recorder","output_path"), c.get_list("generic_recorder","headers"))
+poe_handler = PoeHandler( c.get_actions("handler"), c.get_list("global","usernames"), c.get("global","log_path"))
+
+##Logging init 
+# It's important that this come after GUI/config init because we use it in the logging
 logging_options = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -102,13 +112,10 @@ logging_options = {
 logging.config.dictConfig(logging_options)
 logger = logging.getLogger(__name__)
 logger.info("started watch_poe")
-##Init stuff
-map_recorder = MapRecorder(c.get_actions("map_recorder"), c.get("global","separator"), c.get("map_recorder","output_path"))
-notifier = Notifier(c.get_list("notifier","channels"), c.get("notifier","title"), c.get("notifier","icon_path"), windows)
-generic_recorder = GenericRecorder(c.get_actions("generic_recorder"), c.get("global","separator"), c.get("generic_recorder","output_path"), c.get_list("generic_recorder","headers"))
-poe_handler = PoeHandler(c.get_list("global","usernames"), c.get_actions("handler"), c.get("global","log_path"))
+
 
 ##Main loop
+# We need to do like this because of tkinter (otherwise a while True: works well)
 def loop():
     poe_handler.read_new_lines()
     for message in poe_handler.messages:
