@@ -21,7 +21,7 @@ __all__ = ['notifier', 'recorders', 'config', 'poe_handler', 'interfaces', 'log'
 from .config import config
 from . import utils
 #Meh, really not sure of how i should do that
-from .utils import windows
+from .utils import windows, Map
 from .log import SoundHandler, WarningFilter, TextHandler
 from .notifier import Notifier
 from .recorders import GenericRecorder, MapRecorder

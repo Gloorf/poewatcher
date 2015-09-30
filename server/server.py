@@ -33,7 +33,7 @@ def to_csv(data):
     
 def save_data(data, ip):
     csv = to_csv(data)
-    output_path = DATA_PATH + ip + ".csv"
+    output_path = DATA_PATH + ip + ".csv"jj
     if not os.path.isfile(output_path):
         logging.info('Created file %s', output_path)
         open(output_path, "w+")

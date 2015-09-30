@@ -17,6 +17,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 from . import config as c
 from . import utils
+from .utils import Map
 import os
 import re
 import time
@@ -91,7 +92,7 @@ class MapRecorder():
                 
         
     def parse_message(self, msg, char_name):
-         """ find matching keywords and start associated function """
+        """ find matching keywords and start associated function """
         matches = []
         for abbr,func in self.actions:
             if msg.startswith(abbr):
@@ -118,13 +119,14 @@ class MapRecorder():
         else:
             tmp = self.map_data_from_user_input(msg, char_name)
         #Ugly hack to avoid double error message (in case of wrong data in clipboard)
-        if tmp["psize"] == -3:
+        if tmp.psize == -3:
             return
-        if tmp["level"] < MAP_MIN_LEVEL or tmp["level"] > MAP_MAX_LEVEL:
-            loggerMap.error("Tried to start map with a wrong level : {0}. Cancelling map start".format(tmp["level"]))
+        if tmp.level < MAP_MIN_LEVEL or tmp.level > MAP_MAX_LEVEL:
+            loggerMap.error("Tried to start map with a wrong level : {0}. Cancelling map start".format(tmp.level))
         else:
             self.data.append(tmp)
-            loggerMap.info("Started {8} map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(tmp["level"], tmp["psize"], tmp["iiq"], tmp["beyond"], tmp["domination"], tmp["ambush"], tmp["magic"], tmp["zana"], tmp["name"]))
+            loggerMap.info("Started {0}".format(tmp))
+            loggerMap.info(tmp.to_json())
         
         
     def map_data_from_clipboard(self, msg, char_name):
@@ -165,11 +167,13 @@ class MapRecorder():
             if regex_quantity.search(info):
                 quantity = int(regex_quantity.findall(info)[0].replace("Item Quantity: +",""))  
             quantity += int(c.get("map_recorder", "additional_iiq"))
-            tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[], "name":name, "mods":mods}
+            tmp = Map.from_raw_data(char_name, level, psize, quantity, 
+            boss=0, ambush=False, beyond=False, domination=False, magic=magic, zana=False, name=name, mods=mods)
+            #tmp = {"character":char_name,"level":level, "psize":psize, "iiq":quantity, "ambush": False, "beyond": False,"domination": False,  "magic": magic, "zana" : False, "boss":0, "loot":[], "note":[], "name":name, "mods":mods}
             return tmp
         else:
             loggerMap.error("Trying to use clipboard data but couldn't find a map-like data in clipboard, aborting")
-            tmp = {"level":0, "psize":-3}
+            tmp = Map({"level":0, "psize":-3}, {}, [])
             return tmp
             
             
@@ -182,14 +186,12 @@ class MapRecorder():
         #In case of user input error, assume empty
         while len(info) < 4:
             info.append("")            
-        tmp={"character":char_name,"level":0, "psize":0, "iiq":0, "ambush": ("a" in info[3]), "beyond": ("b" in info[3]),"domination": ("d" in info[3]),  "magic": ("m" in info[3]),"zana" : ("z" in info[3]), "boss":0, "loot":[], "note":[], "name":"", "mods":""}
         #We remove all non-digit character
         for i in range(0,3):
             info[i] = ''.join(filter(lambda x: x.isdigit(), info[i]))
             info[i] = int(info[i]) if info[i].isdigit() else 0
-        tmp["level"] = info[0]
-        tmp["psize"] = info[1]
-        tmp["iiq"] = info[2]
+        tmp = Map.from_raw_data(char_name, info[0], info[1], info[2], 
+        boss=0, ambush=("a" in info[3]), beyond=("b" in info[3]), domination=("d" in info[3]), magic=("m" in info[3]), zana=("z" in info[3]), name="", mods="")
         return tmp
 
     def edit_map(self, msg):
@@ -238,12 +240,13 @@ class MapRecorder():
     def add_loot(self, msg):
         """ Add map loot to the last active Map """
         if len(self.data) > 0:
+            #Removing non-digit characte & cast everything to int
             info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
             info = [int(x) if x.isdigit() else 0 for x in info]
             if any(x < MAP_MIN_LEVEL or x > MAP_MAX_LEVEL for x in info):
                 loggerMap.warning("Warning : logging invalid maps (level < {0} or > {1})".format(MAP_MIN_LEVEL, MAP_MAX_LEVEL))
             else:
-                self.data[-1]["loot"] += info
+                self.data[-1].add_loot(info)
                 loggerMap.info("Adding loot : {0}".format(', '.join(str(x) for x in info)))
         else:
             loggerMap.error("adding loot with no active map")
@@ -252,8 +255,7 @@ class MapRecorder():
     def add_note(self, msg):
         """Add a note to the last active Map """
         if len(self.data) > 0:
-            #Remove the comma to not break the .csv
-            self.data[-1]["note"].append(msg.replace(",",""))
+            self.data[-1].add_note(msg)
             loggerMap.info("Adding note : {0}".format(msg))
         else:
             loggerMap.error("adding note with no active map")
@@ -270,39 +272,42 @@ class MapRecorder():
     def end_map(self, msg):
         """Does a bunch of stuff """
         if len(self.data) > 0:
-            self.data[-1]["boss"] = ''.join(filter(lambda x: x.isdigit(), msg))
-            self.data[-1]["boss"] = self.data[-1]["boss"] if self.data[-1]["boss"] else c.get("map_recorder","default_boss")
-            output = utils.dict_to_csv(self.data[-1])
+            boss = ''.join(filter(lambda x: x.isdigit(), msg))
+            boss = int(boss) if boss else int(c.get("map_recorder","default_boss"))
+            self.data[-1].update_boss(boss)
+            output = self.data[-1].to_csv()
             with open(self.output_path, "a", encoding='utf-8') as file_out:
                 file_out.write(output)
                 file_out.write("\n")
             loggerMap.info("Map ended, i wrote : {0}".format(output))
             if c.getboolean("map_recorder", "send_data"):
-                self.data[-1]["timestamp"] = int(time.time())
-                self.data[-1]["username"] = self.data[-1]["character"] if c.getboolean("map_recorder", "send_data") else "anonymous"
-                response = utils.contact_server(self.data[-1])
-                if "OK" in response:
-                    loggerMap.info("Server response: {0}".format(response))
-                else:
-                #If server is down, logs data to a local file
-                    loggerMap.error("Server response: {0}".format(response))
-                    output_path = "unsent_" + self.output_path
-                    if not os.path.isfile(output_path):
-                        open(output_path, "w+", encoding='utf-8')
-                    with open(output_path, "a", encoding='utf-8') as file:
-                        if os.path.getsize(output_path) == 0:
-                            file.write(MAP_HEADERS)
-                            file.write("\n")
-                            loggerMap.info("Created output csv file for unsent data")
-                        file.write(output)
-                        file.write("\n")
-                    loggerMap.info("Logged data to {0}, you can send them later by typing 'map:force_send'".format(output_path))
+                self.send_map(self.data[-1])
+                # self.data[-1]["timestamp"] = int(time.time())
+                # self.data[-1]["username"] = self.data[-1]["character"] if c.getboolean("map_recorder", "send_data") else "anonymous"
+                # response = utils.contact_server(self.data[-1])
+                # if "OK" in response:
+                #     loggerMap.info("Server response: {0}".format(response))
+                # else:
+                # #If server is down, logs data to a local file
+                #     loggerMap.error("Server response: {0}".format(response))
+                #     output_path = "unsent_" + self.output_path
+                #     if not os.path.isfile(output_path):
+                #         open(output_path, "w+", encoding='utf-8')
+                #     with open(output_path, "a", encoding='utf-8') as file:
+                #         if os.path.getsize(output_path) == 0:
+                #             file.write(MAP_HEADERS)
+                #             file.write("\n")
+                #             loggerMap.info("Created output csv file for unsent data")
+                #         file.write(output)
+                #         file.write("\n")
+                #     loggerMap.info("Logged data to {0}, you can send them later by typing 'map:force_send'".format(output_path))
             ##Finished our sending shenanigans
             self.data = self.data[:-1]
         else:
             loggerMap.error("ending map with no active map")        
             
-            
+    def send_map(self, data):
+        pass
             
             
             
