@@ -50,30 +50,6 @@ def poe_active():
         return True
     else:
         return False
-#It is kinda ugly :( should fix that :P        
-def dict_to_csv(data):
-        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(int(time.time()), data["character"], data["level"], data["psize"], data["iiq"], data["boss"], data["ambush"], data["beyond"], data["domination"],data["magic"], data["zana"])
-        for i in range(68,83):
-            out += "," + str(data["loot"].count(i))
-        out += ","
-        out += '|'.join(data["note"])
-        out += ",{0},{1}".format(data["name"], data["mods"])
-        return out 
-def dict_from_csv(line):
-    data = line.rstrip().split(',')
-    loot = []
-    for i in range(11,26):
-        if int(data[i]) > 0:
-            for j in range(int(data[i])):
-                loot.append(i+57)
-    tmp ={"timestamp":data[0], "character":data[1],"level":data[2], "psize":data[3], "iiq":data[4], "boss": data[5], "ambush": ast.literal_eval(data[6]), "beyond": ast.literal_eval(data[7]),"domination": ast.literal_eval(data[8]),  "magic": ast.literal_eval(data[9]),"zana" : ast.literal_eval(data[10]), "loot":loot, "name":"", "mods":""}
-    #Some older recording don't have name / mods in it
-    if len(data) > 27:
-        tmp["name"] = data[27]
-    if len (data) > 28:
-        tmp["mods"] = data[28]
-    return tmp
-    
 def create_loot():
     """Return an orderedDict (for easy iterations) with [[68,82]] as keys, 0 as value """
     out = OrderedDict()
@@ -88,30 +64,18 @@ def dict_to_tackle_csv(data):
     for i in range(82,67,-1):
         output += "," + str(data["loot"].count(i))
     return output
-    
-def contact_server(data):
+     
+def send_json_to_server(data):
+    """ Send a json string to the server """
     # Create a socket (SOCK_STREAM means a TCP socket)
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          # Connect to server and send data
         sock.connect((c.get("map_recorder", "server_host"), int(c.get("map_recorder", "server_port"))))
-        b = json.dumps(data).encode('utf-8')
+        #This way the server candifferentiate "old" and "new" way to send data
+        data.is_obj = True
+        b = data.encode('utf-8')
         sock.sendall(b)
-
-       # Receive data from the server and shut down
-        received = str(sock.recv(1024), "utf-8")
-        return format(received)
-    except Exception as e:
-        return format(e)    
-def send_map_to_server(data):
-    # Create a socket (SOCK_STREAM means a TCP socket)
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         # Connect to server and send data
-        sock.connect((c.get("map_recorder", "server_host"), int(c.get("map_recorder", "server_port"))))
-        b = json.dumps(data).encode('utf-8')
-        sock.sendall(b)
-
        # Receive data from the server and shut down
         received = str(sock.recv(1024), "utf-8")
         return format(received)
@@ -137,7 +101,7 @@ class Map(object):
     @classmethod
     def from_raw_data(cls, character_name, level, psize, iiq, boss=0, ambush=False, beyond=False, domination=False, magic=False, zana=False, name="", mods="", loot = {}, notes = []):
         """Takes a lot of parameters and return a map """
-        data = {"timestamp":int(time.time()), "level": level, "psize":psize, "iiq":iiq, #Mandatory part
+        data = {"timestamp":int(time.time()), "character":character_name, "level": level, "psize":psize, "iiq":iiq, "boss":boss, #Mandatory part
                 "ambush":ambush, "beyond":beyond, "domination":domination, "magic":magic, "zana":zana, #ZSpecial map mods
                 "name":name, "mods":mods}
         m = cls(data, loot, notes)
@@ -161,7 +125,15 @@ class Map(object):
     @classmethod
     def from_json(cls, raw_json):
         """Takes a json string (not binary !) and return a Map"""
-        pass
+        data = json.loads(raw_json)
+        #Json does not allow integer key, so our loot keys are cast to str during transfer
+        int_loot = {int(k):v for k,v in data["loot"].items()}
+        loot = OrderedDict(sorted(int_loot.items(), key=lambda t: t[0]))
+        notes = data["notes"]
+        data.pop("loot", None)
+        data.pop("notes", None)
+        m1 = Map(data, loot, notes)
+        return m1
     def to_json(self):
         """Return a json string (not binary !) containing the map """
         # See http://stackoverflow.com/questions/3768895/python-how-to-make-a-class-json-serializable
@@ -170,12 +142,13 @@ class Map(object):
     def to_csv(self):
         """Return a line in a CSV file"""
         #Still ugly, need to fix it :P
-        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(self.timestamp, self.character, self.level, self.psize, self.iiq, self.boss, self.ambush, self.beyond, data["domination"],data["magic"], data["zana"])
+        out = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(self.timestamp, self.character, self.level, self.psize, self.iiq, self.boss, self.ambush, self.beyond, self.domination,self.magic, self.zana)
         for i in range(68,83):
             out += "," + str(self.loot[i])
         out += ","
         out += '|'.join(self.notes)
         out += ",{0},{1}".format(self.name, self.mods)
+        return out
     def to_tackle_csv(self):
         """Return a line in a CSV file, tackle's 70 format"""
         zana_mod = 1 if (self.ambush or self.domination) else ""

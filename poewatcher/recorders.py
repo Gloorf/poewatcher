@@ -270,7 +270,7 @@ class MapRecorder():
             loggerMap.error("aborting map with no active map")
             
     def end_map(self, msg):
-        """Does a bunch of stuff """
+        """Saves data to local file, optionally sends data to server """
         if len(self.data) > 0:
             boss = ''.join(filter(lambda x: x.isdigit(), msg))
             boss = int(boss) if boss else int(c.get("map_recorder","default_boss"))
@@ -282,32 +282,30 @@ class MapRecorder():
             loggerMap.info("Map ended, i wrote : {0}".format(output))
             if c.getboolean("map_recorder", "send_data"):
                 self.send_map(self.data[-1])
-                # self.data[-1]["timestamp"] = int(time.time())
-                # self.data[-1]["username"] = self.data[-1]["character"] if c.getboolean("map_recorder", "send_data") else "anonymous"
-                # response = utils.contact_server(self.data[-1])
-                # if "OK" in response:
-                #     loggerMap.info("Server response: {0}".format(response))
-                # else:
-                # #If server is down, logs data to a local file
-                #     loggerMap.error("Server response: {0}".format(response))
-                #     output_path = "unsent_" + self.output_path
-                #     if not os.path.isfile(output_path):
-                #         open(output_path, "w+", encoding='utf-8')
-                #     with open(output_path, "a", encoding='utf-8') as file:
-                #         if os.path.getsize(output_path) == 0:
-                #             file.write(MAP_HEADERS)
-                #             file.write("\n")
-                #             loggerMap.info("Created output csv file for unsent data")
-                #         file.write(output)
-                #         file.write("\n")
-                #     loggerMap.info("Logged data to {0}, you can send them later by typing 'map:force_send'".format(output_path))
-            ##Finished our sending shenanigans
             self.data = self.data[:-1]
         else:
             loggerMap.error("ending map with no active map")        
             
     def send_map(self, data):
-        pass
-            
+        """Send a map object to server (using json) ; 
+        If the server can't be reached, saves data to a separate file instead
+        """
+        response = utils.send_json_to_server(data.to_json())
+        if "OK" in response:
+            loggerMap.info("Server response : {0}".format(response))
+        else:
+            #If server down, stores data to a local file
+            loggerMap.error("Server response: {0}".format(response))
+            output_path = "unsent_" + self.output_path
+            if not os.path.isfile(output_path):
+                open(output_path, "w+", encoding='utf-8')
+            with open(output_path, "a", encoding='utf-8') as file:
+                if os.path.getsize(output_path) == 0:
+                    file.write(MAP_HEADERS)
+                    file.write("\n")
+                    loggerMap.info("Created output csv file for unsent data")
+                file.write(output)
+                file.write("\n")
+            loggerMap.info("Logged data to {0}, you can send them later by typing 'map:force_send'".format(output_path))
             
             
