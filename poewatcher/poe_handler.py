@@ -93,18 +93,18 @@ class PoeHandler():
             logger.warning("Trying to set poetrade online but url is empty")
     def force_send_map(self):
         """ Send data from unsent_[map_recorder].output_path to the server
-        Used when data couldn't be sent earlier (typically, server down
+        Used when data couldn't be sent earlier (typically, server down)
         """
         path = "unsent_" + c.get("map_recorder", "output_path")
         logger.info("Trying to send data to server")
         if os.path.isfile(path):
             manager = CsvManager(path)
             for d in manager.data:
-                response = utils.contact_server(d)
+                response = utils.send_map_to_server(d)
                 if "OK" in response:
                     logger.info("Server response: {0}".format(response))
                 else:
-                #If server is down, logs data to a local file
+                #If server is down, don't send other data
                     logger.error("Server response: {0}".format(response))
                     logger.error("Can't contact server, aborting map send")
                     return   

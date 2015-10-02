@@ -17,7 +17,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 from . import config as c
 from . import utils
-from .utils import Map
+from .utils import Map, MAP_MIN_LEVEL, MAP_MAX_LEVEL 
 import os
 import re
 import time
@@ -68,8 +68,7 @@ MAP_PREFIXES = ["Anarchic","Antagonist's","Armoured","Bipedal","Burning","Capric
 "Overlord's","Punishing","Savage","Shocking","Skeletal","Slithering","Splitting","Titan's","Twinned","Undead","Unwavering","Zana's", 
 "Enraged", "Labyrinthine", "Massive", "Villainous" ]
 MAP_SUFFIXES = ["of Balance","of Bloodlines","of Congealment","of Deadlines","of Desecration","of Elemental Weakness","of Endurance","of Enfeeblement","of Exposure","of Flames","of Frenzy","of Fracturing","of Giants","of Hemomancy","of Ice","of Insulation","of Lightning","of Power","of Smothering","of Stasis","of Temporal Chains","of Venom","of Vulnerability", "of Commanders", "of Hordes", "of Suffering", "of the Warlord"]
-MAP_MIN_LEVEL = 66
-MAP_MAX_LEVEL = 82
+
 class MapRecorder():
     """ Manager who creates/destroy/edit new Map object based on user input 
     Also sends map data to a server
@@ -125,9 +124,7 @@ class MapRecorder():
             loggerMap.error("Tried to start map with a wrong level : {0}. Cancelling map start".format(tmp.level))
         else:
             self.data.append(tmp)
-            loggerMap.info("Started {0}".format(tmp))
-            loggerMap.info(tmp.to_json())
-        
+            loggerMap.info("Started {0}".format(tmp))        
         
     def map_data_from_clipboard(self, msg, char_name):
         """ Return a Map Object, try to use information in clipboard.
@@ -155,13 +152,14 @@ class MapRecorder():
             #We store in b64 because of the many commas, \n and other stuff that can screw up the .csv
             #Also, directly decode bytes to string cause no point in storing bytes (we'll write them like every other stirngs)
             mods = base64.b64encode(bytes(info, 'utf-8')).decode("utf-8")
-            regex_level = re.compile("Map Level: \d{2}")
+            regex_level = re.compile("Map Tier: \d{1,2}")
             regex_psize = re.compile("Monster Pack Size: \+\d{1,3}")
             regex_quantity = re.compile("Item Quantity: \+\d{1,3}")
             level = psize = quantity = 0
             magic = "more Magic Monsters" in info
             if regex_level.search(info):
-                level = int(regex_level.findall(info)[0].replace("Map Level: ",""))
+                #Thanks to new map tier we don't directly have the level anymore in the clipboard data >.<
+                level = int(regex_level.findall(info)[0].replace("Map Tier: ","")) + 67
             if regex_psize.search(info):
                 psize = int(regex_psize.findall(info)[0].replace("Monster Pack Size: +",""))
             if regex_quantity.search(info):
@@ -198,34 +196,52 @@ class MapRecorder():
         """ Edit last active Map. Uses map_data_from_user_input syntax.
         /!\ Erase old data if new corresponding data is inputed
         """
-        tmp = self.map_data_from_user_input(msg, self.data[-1]["character"])
-        for key in ["loot", "note", "name", "mods"]:
-            tmp[key] = self.data[-1][key]
+        tmp = self.map_data_from_user_input(msg, self.data[-1].character)
         info = msg.split(self.separator)
+        log = "Edited map"
         if len(info) < 1:
             loggerMap.warning("Called edit_map without arguments")
-        #If we don't input new psize/iiq, save 'em
-        if len(info) < 2:
-            tmp["psize"] = self.data[-1]["psize"]
-        if len(info) < 3:
-            tmp["iiq"] = self.data[-1]["iiq"]
-        log = "Edited map"
-        if self.data[-1]["zana"]:
+            return
+        #Update data if it exists
+        if len(info) > 0:
+            self.data[-1].update_level(tmp.level)
+            log += ", with new level {0}".format(tmp.level)
+        if len(info) > 1:
+            self.data[-1].update_psize(tmp.psize)
+            log += ", with new pack size {0}".format(tmp.psize)
+        if len(info) > 2:
+            self.data[-1].update_iiq(tmp.iiq)
+            log += ", with new IIQ {0}".format(tmp.iiq)
+        self.data[-1].update_mods(tmp.ambush, tmp.beyond, tmp.domination, tmp.magic, tmp.zana)
+        if self.data[-1].zana:
             log +=", with Zana"
-        if self.data[-1]["ambush"]:
+        if self.data[-1].ambush:
             log +=", with Ambush"
-        if self.data[-1]["domination"]:
+        if self.data[-1].domination:
             log +=", with Domination"
-        if self.data[-1]["magic"]:
+        if self.data[-1].magic:
             log +=", with magic monsters"            
-        if tmp["level"] != self.data[-1]["level"]:
-            log += ", with new level " + info[0]
-        if tmp["psize"] != self.data[-1]["psize"]:
-            log += ", with new pack size " + info[1]
-        if tmp["iiq"] != self.data[-1]["iiq"]:
-            log += ", with new IIQ " + info[2]
+            
         loggerMap.info(log)
-        self.data[-1] = tmp
+    def edit_mods(self, msg):
+        """ Edit last active map mods 
+        /!\ Erase old values """
+        ambush = "a" in msg
+        beyond = "b" in msg
+        domination = "d" in msg
+        magic = "m" in msg
+        zana = "z" in msg
+        self.data[-1].update_mods(ambush,beyond,domination,magic,zana)
+        log = "Added mods"
+        if self.data[-1].zana:
+            log +=" Zana"
+        if self.data[-1].ambush:
+            log +=", Ambush"
+        if self.data[-1].domination:
+            log +=", Domination"
+        if self.data[-1].magic:
+            log +=", magic monsters"      
+        loggerMap.info(log)
         
     def update_name(self, msg):
         """ Replace last active Map name by msg """
@@ -275,11 +291,11 @@ class MapRecorder():
             boss = ''.join(filter(lambda x: x.isdigit(), msg))
             boss = int(boss) if boss else int(c.get("map_recorder","default_boss"))
             self.data[-1].update_boss(boss)
-            output = self.data[-1].to_csv()
+            csv = self.data[-1].to_csv()
             with open(self.output_path, "a", encoding='utf-8') as file_out:
-                file_out.write(output)
+                file_out.write(csv)
                 file_out.write("\n")
-            loggerMap.info("Map ended, i wrote : {0}".format(output))
+            loggerMap.info("Map ended, i wrote : {0}".format(csv))
             if c.getboolean("map_recorder", "send_data"):
                 self.send_map(self.data[-1])
             self.data = self.data[:-1]
@@ -290,9 +306,13 @@ class MapRecorder():
         """Send a map object to server (using json) ; 
         If the server can't be reached, saves data to a separate file instead
         """
-        response = utils.send_json_to_server(data.to_json())
+        csv = data.to_csv()
+        response = utils.send_map_to_server(data)
         if "OK" in response:
             loggerMap.info("Server response : {0}".format(response))
+        elif "FAIL" in response:
+            #Invalid data sent
+            loggerMap.error("Server response: {0}".format(response))
         else:
             #If server down, stores data to a local file
             loggerMap.error("Server response: {0}".format(response))
@@ -304,7 +324,7 @@ class MapRecorder():
                     file.write(MAP_HEADERS)
                     file.write("\n")
                     loggerMap.info("Created output csv file for unsent data")
-                file.write(output)
+                file.write(csv)
                 file.write("\n")
             loggerMap.info("Logged data to {0}, you can send them later by typing 'map:force_send'".format(output_path))
             

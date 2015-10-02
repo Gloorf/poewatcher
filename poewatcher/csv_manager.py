@@ -17,6 +17,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>
 from . import config as c
 from . import utils
+from . import Map
 import logging
 import os
 logger = logging.getLogger(__name__)
@@ -26,12 +27,13 @@ class CsvManager():
         self.data = []
         self.read_file()
     def read_file(self):
-        """ Read a .csv and put it in a dict """
+        """ Read a .csv, and create a Map for each line """
         if os.path.isfile(self.filename):
             with open(self.filename, "r", encoding="utf-8") as file:
                 file.readline() #Don't use first line [headers]
                 for line in file:
-                    self.data.append(utils.dict_from_csv(line))
+                    m = Map.from_csv(line)
+                    self.data.append(m)
         else:
             logger.warning("Tried to open {0} but couldn't :|".format(self.filename))
     def write_to_tackle_csv(self, output_path):
@@ -40,6 +42,6 @@ class CsvManager():
             logger.warning("The output {0} already exists ; i deleted it to write the new one".format(output_path))
         with open(output_path, "w", encoding="utf-8")as file:
             for d in self.data:
-                output = utils.dict_to_tackle_csv(d)
+                output = d.to_tackle_csv()
                 file.write(output)
                 file.write("\n")

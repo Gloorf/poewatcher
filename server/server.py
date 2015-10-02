@@ -59,23 +59,29 @@ class PoeTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
         client_ip = self.client_address[0]
-        b = b''
-        b = self.request.recv(8192)
-        raw_json = b.decode('utf-8')
-        if "is_obj" in raw_json:
-            print(raw_json)
-            m1=Map.from_json(raw_json)
-            save_new_data(m1, client_ip)
-            logging.info('{0} - Current version - OK'.format(client_ip))
-            self.request.sendall(b'OK')
-        else:
-            save_data(json.loads(raw_json), client_ip)
-            logging.info('{0} - Legacy version - OK'.format(client_ip))
-            legacy = b'You are using an old version of poewatcher. Please go to https://github.com/Gloorf/poewatcher/releases and download the new version !'
-            self.request.sendall(legacy)
-            # error = b'FAIL'
-            # logging.warning('%s - FAIL', client_ip)
-            # self.request.sendall(error)
+        try:
+            b = b''
+            b = self.request.recv(8192)
+            raw_json = b.decode('utf-8')
+            data = json.loads(raw_json)
+            
+            if "is_obj" in data:
+                m1=Map.from_json(raw_json)
+                save_new_data(m1, client_ip)
+                logging.info('{0} - Current version - OK'.format(client_ip))
+                self.request.sendall(b'OK')
+            else:
+                save_data(data, client_ip)
+                logging.info('{0} - Legacy version - OK'.format(client_ip))
+                legacy = b'OK - You are using an old version of poewatcher. Please go to https://github.com/Gloorf/poewatcher/releases and download the new version !'
+                self.request.sendall(legacy)
+                # error = b'FAIL'
+                # logging.warning('%s - FAIL', client_ip)
+                # self.request.sendall(error)
+        except Exception as e:
+            error = "FAIL - {0}".format(e)
+            logging.warning('{0} - FAIL - {1}'.format(client_ip,e))
+            self.request.sendall(error.encode('utf-8'))
 
     
 #see https://www.pathofexile.com/forum/view-thread/537709#p4832625

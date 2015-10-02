@@ -22,6 +22,10 @@ import socket
 import json
 import ast
 from collections import OrderedDict
+import logging
+logger = logging.getLogger(__name__)
+MAP_MIN_LEVEL = 66
+MAP_MAX_LEVEL = 82
 if os.name == "nt":
     windows = True
     import subprocess
@@ -65,7 +69,7 @@ def dict_to_tackle_csv(data):
         output += "," + str(data["loot"].count(i))
     return output
      
-def send_json_to_server(data):
+def send_map_to_server(data):
     """ Send a json string to the server """
     # Create a socket (SOCK_STREAM means a TCP socket)
     try:
@@ -74,7 +78,7 @@ def send_json_to_server(data):
         sock.connect((c.get("map_recorder", "server_host"), int(c.get("map_recorder", "server_port"))))
         #This way the server candifferentiate "old" and "new" way to send data
         data.is_obj = True
-        b = data.encode('utf-8')
+        b = data.to_json().encode('utf-8')
         sock.sendall(b)
        # Receive data from the server and shut down
         received = str(sock.recv(1024), "utf-8")
@@ -111,9 +115,13 @@ class Map(object):
         """Takes a csv line (no headers !) and return a Map"""
         info = raw_csv.rstrip().split(',')
         #That's not so great error handling but w/e
-        if len(info) < 29:
+        if len(info) < 27:
             print("CSV is too little, big problem !!")
             return
+        #Legacy handling
+        if len(info) < 29:
+            info.append("")
+            info.append("")
         data = {"timestamp":info[0], "character":info[1],"level":info[2], "psize":info[3], "iiq":info[4], "boss": info[5], "ambush": ast.literal_eval(info[6]), "beyond": ast.literal_eval(info[7]),"domination": ast.literal_eval(info[8]),  "magic": ast.literal_eval(info[9]),"zana" : ast.literal_eval(info[10]), "name":info[27], "mods":info[28]}
         loot = create_loot()
         for i in range(11, 26):
@@ -164,7 +172,7 @@ class Map(object):
         if isinstance(loot, int):
             loot = [loot]
         for l in loot:
-            self.loot[i] += 1
+            self.loot[l] += 1
         
     def add_note(self, note):
         """ Add note ; remove comma to avoid breaking  the .csv"""
@@ -176,6 +184,31 @@ class Map(object):
     def update_boss(self, boss):
         """ Update number of boss"""
         self.boss = boss
+    def update_iiq(self, value):
+        """ Update IIQ """
+        if value < 0:
+            logger.warning("Tried to set an IIQ < 0, aborting")
+        else:
+            self.iiq = value
+    def update_level(self, value):
+        """ Update Level"""
+        if value < MAP_MIN_LEVEL or value > MAP_MAX_LEVEL:
+            logger.warning("Tried to set a level < {0} or > {0}, aborting".format(MAP_MIN_LEVEL, MAP_MAX_LEVEL))
+        else:
+            self.level = value
+    def update_psize(self, value):
+        """ Update pack size """
+        if value < 0:
+            logger.warning("Tried to set a psize < 0, aborting")
+        else:
+            self.psize = value
+    def update_mods(self, ambush, beyond, domination, magic, zana):
+        """ Update all mods ; must be boolean !"""
+        self.ambush = ambush
+        self.beyond = beyond
+        self.domination = domination
+        self.magic = magic
+        self.zana = zana
     ## I love magic methods
     def __str__(self):
         s = "{8} map, with level = {0}, psize = {1}, iiq = {2}, ambush = {5}, beyond = {3}, domination = {4}, magic = {6}, zana = {7}".format(self.level, self.psize, self.iiq, self.beyond, self.domination, self.ambush, self.magic, self.zana, self.name)
