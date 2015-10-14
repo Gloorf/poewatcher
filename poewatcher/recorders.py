@@ -259,6 +259,9 @@ class MapRecorder():
             #Removing non-digit characte & cast everything to int
             info = [''.join(filter(lambda x: x.isdigit(), y)) for y in msg.split(self.separator)]
             info = [int(x) if x.isdigit() else 0 for x in info]
+            #If we chose to use Tier input, actual level is tier+67
+            if c.get("map_recorder", "map_input") == "tier":
+                info=[x+67 for x in info]
             if any(x < MAP_MIN_LEVEL or x > MAP_MAX_LEVEL for x in info):
                 loggerMap.warning("Warning : logging invalid maps (level < {0} or > {1})".format(MAP_MIN_LEVEL, MAP_MAX_LEVEL))
             else:

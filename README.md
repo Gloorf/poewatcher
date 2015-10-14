@@ -21,7 +21,7 @@ A python script for Path Of Exile controlled by in game text input (it scans the
 * [map_recorder].send_data. Activated by default, sends data to my server for mass map data.
 * [map_recorder].output_path. The name of the .csv file where the data is stored
 * [map_recorder].additional_iiq. Set it to your zana level
-
+* [map_recorder].map_input. Either "tier" or level ; how the drop will be input'd (see map recorder for more explanation). Note that this doesn't affect mapstart/mapedit commands, who will always use 
 For others values, the name should either be clear enough, or should be explicited in the comment before.
 
 # Server
@@ -71,7 +71,7 @@ me:1 # You killed 1 boss on this maps
 ## Available commands
 
 * map start : (keyword)map_level,map_packsize,map_iiq[,abdmz]. The last is optional, and you can use 1, 2 or 3 of them. "a" is for Ambush, "d" for Domination, "b" is for Beyond mod, "m" is for magic monsters, "z" for zana. Default keyword is **"ms:"**
-* map loot : (keyword)map_level[,map_n_level...]. Pretty straightforward. Default keyword is **"ml:"**
+* map loot : (keyword)map_level[,map_n_level...]. Pretty straightforward. Default keyword is **"ml:"**. If you have [map_recorder].map_input to "tier", it will expect tier (so number in the range 1-15). If it's set to "level", it will expect level (number in the range 68-82)
 * map note : (keyword)note. The note can be any size, comma will be removed though (to avoid breaking the .csv) ; multiples notes will be separated by a "|". Default keyword is **"mn:"**
 * map end : (keyword)[boss_killed]. You can omit boss_killed, in this case the default value in config.py will be used. Default keyword is **"me:"**
 * map abort : (keyword). Remove the last active map (if you made a mistake or whatever). Default keyword is **"ma:"**
